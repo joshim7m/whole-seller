@@ -4,11 +4,15 @@ namespace App\Http\Controllers\StoreFront;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Faq;
 use App\Models\InstagramImage;
+use App\Models\Notice;
+use App\Models\Page;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\UserDetail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -17,6 +21,23 @@ class StorefrontController extends Controller
     public function index()
     {
         $categories = Category::whereNull('parent_id')->with('children')->get();
+
+        $categoryIds = $categories->flatMap(fn (Category $category) => $category->children->pluck('id')->push($category->id));
+
+        $counts = DB::table('category_product')
+            ->join('products', 'products.id', '=', 'category_product.product_id')
+            ->whereIn('category_product.category_id', $categoryIds)
+            ->where('products.status', 'active')
+            ->select('category_product.category_id')
+            ->selectRaw('count(*) as total')
+            ->groupBy('category_product.category_id')
+            ->pluck('total', 'category_product.category_id')
+            ->map(fn ($value) => (int) $value);
+
+        $categories->each(function (Category $category) use ($counts) {
+            $ids = $category->children->pluck('id')->push($category->id);
+            $category->products_count = $ids->sum(fn (int $id) => (int) $counts->get($id, 0));
+        });
 
         $featured = Product::where('status', 'active')->where('featured', true)
             ->with('category', 'images')->latest()->take(10)->get();
@@ -38,7 +59,11 @@ class StorefrontController extends Controller
 
         $instagramImages = InstagramImage::latest()->take(6)->get();
 
-        return Inertia::render('StoreFront/Home/Index', compact('categories', 'products', 'newArrivals', 'instagramImages'));
+        $faqs = Faq::active()->orderBy('sort_order')->get();
+
+        $notices = Notice::active()->latest()->get();
+
+        return Inertia::render('StoreFront/Home/Index', compact('categories', 'products', 'newArrivals', 'instagramImages', 'faqs', 'notices'));
     }
 
     public function categories()
@@ -127,38 +152,42 @@ class StorefrontController extends Controller
         return Inertia::render('StoreFront/Products/Show', compact('product', 'related'));
     }
 
-    public function searchProductsAjax(Request $request)
+    public function showPage(Page $page)
     {
-        $q = $request->get('q');
-        if (! $q || strlen($q) < 2) {
-            return response()->json([]);
+        abort_unless($page->status, 404);
+
+        return Inertia::render('StoreFront/Pages/Show', compact('page'));
+    }
+
+    public function searchAjax(Request $request)
+    {
+        $q = trim((string) $request->get('q'));
+
+        $query = Product::where('status', 'active');
+
+        if ($q !== '') {
+            $query->where(function ($qry) use ($q) {
+                $qry->where('title', 'like', "%{$q}%")
+                    ->orWhere('sku', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%")
+                    ->orWhereHas('variants', function ($variantQry) use ($q) {
+                        $variantQry->where('sku', 'like', "%{$q}%");
+                    });
+            });
         }
 
-        $products = Product::where('status', 'active')
-            ->where(function ($query) use ($q) {
-                $query->where('title', 'like', "%{$q}%");
-            })
-            ->with('variants')
-            ->take(10)
-            ->get()
-            ->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'title' => $product->title,
-                    'slug' => $product->slug,
-                    'sale_price' => $product->sale_price,
-                    'unit_price' => $product->unit_price,
-                    'image' => $product->image_url,
-                    'variants' => $product->variants->map(function ($v) {
-                        return [
-                            'id' => $v->id,
-                            'size' => $v->size,
-                            'color' => $v->color,
-                            'quantity' => $v->quantity,
-                        ];
-                    }),
-                ];
-            });
+        $products = $query->orderByDesc('featured')->latest()->take(5)->get()
+            ->load('variants')
+            ->map(fn (Product $product) => [
+                'id' => $product->id,
+                'title' => $product->title,
+                'slug' => $product->slug,
+                'sku' => $product->sku ?: $product->variants->first()?->sku,
+                'sale_price' => $product->sale_price,
+                'unit_price' => $product->unit_price,
+                'total_stock' => $product->total_stock,
+                'image' => $product->image_url,
+            ]);
 
         return response()->json($products);
     }
@@ -166,6 +195,16 @@ class StorefrontController extends Controller
     public function cart()
     {
         return Inertia::render('StoreFront/Cart/Index');
+    }
+
+    public function wishlistPage()
+    {
+        $products = Product::where('status', 'active')
+            ->with('images', 'variants', 'category')
+            ->latest()
+            ->get();
+
+        return Inertia::render('StoreFront/Wishlist/Index', compact('products'));
     }
 
     public function profile()
@@ -208,7 +247,11 @@ class StorefrontController extends Controller
             $q = $request->q;
             $query->where(function ($qry) use ($q) {
                 $qry->where('title', 'like', "%{$q}%")
-                    ->orWhere('description', 'like', "%{$q}%");
+                    ->orWhere('sku', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%")
+                    ->orWhereHas('variants', function ($variantQry) use ($q) {
+                        $variantQry->where('sku', 'like', "%{$q}%");
+                    });
             });
         }
 

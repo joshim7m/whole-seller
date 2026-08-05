@@ -20,11 +20,15 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::middleware('check-status')->group(function () {
     Route::get('/categories', [StorefrontController::class, 'categories'])->name('categories.index');
     Route::get('/cart', [StorefrontController::class, 'cart'])->name('cart.index');
+    Route::get('/wishlist', [StorefrontController::class, 'wishlistPage'])->name('wishlist.index');
     Route::get('/products', [StorefrontController::class, 'products'])->name('products.index');
     Route::get('/new-arrivals', [StorefrontController::class, 'newArrivals'])->name('products.new-arrivals');
     Route::get('/hot-sale', [StorefrontController::class, 'hotSale'])->name('products.hot-sale');
     Route::get('/category/{category:slug}', [StorefrontController::class, 'category'])->name('category.show');
     Route::get('/product/{product:slug}', [StorefrontController::class, 'product'])->name('product.show');
+    Route::get('/page/{page:slug}', [StorefrontController::class, 'showPage'])->name('pages.show');
+
+    Route::get('/api/search', [StorefrontController::class, 'searchAjax'])->name('api.search');
 });
 
 Route::middleware(['auth', 'check-status'])->group(function () {
@@ -36,6 +40,4 @@ Route::middleware(['auth', 'check-status'])->group(function () {
     Route::get('/orders', [CheckoutController::class, 'orders'])->name('orders.index');
     Route::get('/orders/{order}', [CheckoutController::class, 'show'])->name('orders.show');
     Route::get('/orders/{order}/invoice', [CheckoutController::class, 'downloadInvoice'])->name('orders.invoice');
-
-    Route::get('/api/products/search', [StorefrontController::class, 'searchProductsAjax'])->name('api.products.search');
 });

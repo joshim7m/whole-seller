@@ -17,5 +17,7 @@ export function useCart() {
         updateQuantity: store.updateQuantity,
         removeItem: store.removeItem,
         clear: store.clear,
+        openDrawer: store.openDrawer,
+        closeDrawer: store.closeDrawer,
     }
 }

@@ -10,6 +10,10 @@ function formatPrice(price) {
     return '৳' + price.toLocaleString('en-IN')
 }
 
+function itemImage(item) {
+    return item.variant?.image?.image_path || item.variant?.product?.image_url || null
+}
+
 const statusForm = useForm({
     status: order.status,
 })
@@ -76,8 +80,17 @@ function paymentBadge(s) {
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                                     <tr v-for="item in order.items" :key="item.id">
                                         <td class="px-3 py-2.5">
-                                            <p class="font-medium text-gray-900 dark:text-white">{{ item.item_name }}</p>
-                                            <p v-if="item.size || item.color" class="text-xs text-gray-500 dark:text-gray-400">{{ item.size }} / {{ item.color }}</p>
+                                            <div class="flex items-center gap-3">
+                                                <img v-if="itemImage(item)" :src="itemImage(item)" :alt="item.item_name" class="w-12 h-12 rounded-lg object-cover bg-gray-100 dark:bg-gray-800 shrink-0" loading="lazy">
+                                                <div v-else class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-300 dark:text-gray-600 shrink-0">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"/></svg>
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <p class="font-medium text-gray-900 dark:text-white">{{ item.item_name }}</p>
+                                                    <p v-if="item.size || item.color" class="text-xs text-gray-500 dark:text-gray-400">Variant: {{ item.size }} / {{ item.color }}</p>
+                                                    <p v-if="item.variant?.sku" class="text-xs text-gray-500 dark:text-gray-400">SKU: {{ item.variant.sku }}</p>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="px-3 py-2.5 text-center text-gray-600 dark:text-gray-400">{{ item.quantity }}</td>
                                         <td class="px-3 py-2.5 text-right text-gray-600 dark:text-gray-400">{{ formatPrice(item.price_at_purchase) }}</td>

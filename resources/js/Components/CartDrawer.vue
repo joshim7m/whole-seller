@@ -3,15 +3,11 @@ import { ref, watch } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import { useCart } from '@/composables/useCart'
 
-const props = defineProps({
-    open: { type: Boolean, default: false },
-})
-
-const emit = defineEmits(['close'])
-
 const enter = ref(false)
 
-watch(() => props.open, (val) => {
+const { items: cart, count, total, updateQuantity, removeItem, drawerOpen, closeDrawer } = useCart()
+
+watch(drawerOpen, (val) => {
     if (val) {
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
@@ -25,10 +21,8 @@ watch(() => props.open, (val) => {
 
 function close() {
     enter.value = false
-    setTimeout(() => emit('close'), 300)
+    setTimeout(() => closeDrawer(), 300)
 }
-
-const { items: cart, count, total, updateQuantity, removeItem } = useCart()
 
 function formatPrice(price) {
     return '৳' + Number(price).toLocaleString('en-IN')
@@ -37,7 +31,7 @@ function formatPrice(price) {
 
 <template>
     <Teleport to="body">
-            <div v-if="open" class="fixed inset-0 z-50">
+            <div v-if="drawerOpen" class="fixed inset-0 z-50">
             <div class="fixed inset-0 bg-black/40 backdrop" @click="close" />
 
             <div class="fixed inset-x-0 bottom-0 md:inset-y-0 md:right-0 md:left-auto w-full md:max-w-md bg-white dark:bg-gray-900 shadow-xl flex flex-col rounded-t-2xl md:rounded-none overflow-hidden md:translate-x-0 transition-transform duration-300 ease-out"

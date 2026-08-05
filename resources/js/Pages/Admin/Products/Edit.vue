@@ -1,5 +1,6 @@
 <script setup>
 import AdminMaster from '@/Layouts/Admin/AdminMaster.vue'
+import RichTextEditor from '@/Components/Admin/RichTextEditor.vue'
 import { Head, Link, useForm, router } from '@inertiajs/vue3'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
@@ -17,6 +18,7 @@ const colorValuesText = ref('')
 const imagePickerTarget = ref(null)
 const showImagePicker = ref(false)
 const confirmDialog = ref({ show: false, title: '', message: '', onConfirm: null })
+const showSpecification = ref(Boolean(product.specification))
 
 const hasNewImages = computed(() => newImagePreviews.value.length > 0)
 
@@ -36,6 +38,7 @@ const form = useForm({
     title: product.title,
     slug: product.slug,
     description: product.description,
+    specification: product.specification || '',
     sku: product.sku || '',
     quantity: product.quantity ?? '',
     unit_price: product.unit_price,
@@ -337,8 +340,19 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 
                     <div>
                         <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description <span class="text-red-500">*</span></label>
-                        <textarea id="description" v-model="form.description" rows="5" class="w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" required></textarea>
+                        <RichTextEditor v-model="form.description" placeholder="Write a detailed description..." :min-height="'200px'" />
                         <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">{{ form.errors.description }}</p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <input id="show_specification" v-model="showSpecification" type="checkbox" class="rounded border-gray-300 dark:border-gray-700 text-blue-600 shadow-sm focus:ring-blue-500" />
+                        <label for="show_specification" class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Add Specification</label>
+                    </div>
+
+                    <div v-if="showSpecification">
+                        <label for="specification" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Specification</label>
+                        <RichTextEditor v-model="form.specification" placeholder="Add specifications (fabric, size guide, care instructions, etc.)..." :min-height="'200px'" />
+                        <p v-if="form.errors.specification" class="mt-1 text-sm text-red-600">{{ form.errors.specification }}</p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

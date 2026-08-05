@@ -23,12 +23,10 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $lowStockProducts = Product::withSum('variants', 'quantity')
-            ->where(function ($q) {
-                $q->whereRaw('(select sum(quantity) from product_variants where product_id = products.id) <= 5')
-                    ->orWhereRaw('(select sum(quantity) from product_variants where product_id = products.id) is null');
-            })
-            ->orderBy('variants_sum_quantity')
+        $topSellers = User::whereIn('user_type', ['reseller', 'wholeseller'])
+            ->with('userDetail')
+            ->withSum('orders', 'total_amount')
+            ->orderByDesc('orders_sum_total_amount')
             ->take(10)
             ->get();
 
@@ -50,6 +48,6 @@ class DashboardController extends Controller
             'total_customers' => $totalCustomers,
         ];
 
-        return Inertia::render('Admin/Dashboard', compact('salesData', 'recentOrders', 'lowStockProducts', 'weeklyCategorySales'));
+        return Inertia::render('Admin/Dashboard', compact('salesData', 'recentOrders', 'topSellers', 'weeklyCategorySales'));
     }
 }

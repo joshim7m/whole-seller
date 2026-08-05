@@ -24,7 +24,7 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        $order->load('user.userDetail', 'items.variant.product.images', 'invoice');
+        $order->load('user.userDetail', 'items.variant.image', 'items.variant.product.images', 'invoice');
 
         if ($order->invoice && $order->invoice->payment_status === 'paid' && $order->invoice->due_amount > 0) {
             $total = (int) $order->total_amount;

@@ -1,19 +1,73 @@
 <script setup>
 import AdminMaster from '@/Layouts/Admin/AdminMaster.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js'
+import { Bar } from 'vue-chartjs'
 
-const { salesData, recentOrders, lowStockProducts, weeklyCategorySales } = defineProps({
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
+
+const { salesData, recentOrders, topSellers, weeklyCategorySales } = defineProps({
     salesData: { type: Object, required: true },
     recentOrders: { type: Array, required: true },
-    lowStockProducts: { type: Array, required: true },
+    topSellers: { type: Array, required: true },
     weeklyCategorySales: { type: Array, required: true },
 })
 
-const maxCategoryTotal = computed(() => {
-    if (!weeklyCategorySales.length) return 0
-    return Math.max(...weeklyCategorySales.map(c => Number(c.total)), 1)
+const isDark = ref(false)
+
+onMounted(() => {
+    const syncDark = () => {
+        isDark.value = document.documentElement.classList.contains('dark')
+    }
+
+    syncDark()
+
+    const observer = new MutationObserver(syncDark)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 })
+
+const palette = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#84cc16']
+
+const chartData = computed(() => ({
+    labels: weeklyCategorySales.map(c => c.category),
+    datasets: [
+        {
+            label: 'Sales',
+            data: weeklyCategorySales.map(c => Number(c.total)),
+            backgroundColor: weeklyCategorySales.map((_, i) => palette[i % palette.length]),
+            borderRadius: 6,
+            maxBarThickness: 48,
+        },
+    ],
+}))
+
+const chartOptions = computed(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: false },
+        tooltip: {
+            callbacks: {
+                label: ctx => ' ৳' + Number(ctx.parsed.y).toLocaleString('en-IN'),
+            },
+        },
+    },
+    scales: {
+        x: {
+            grid: { display: false },
+            ticks: { color: isDark.value ? '#9ca3af' : '#6b7280' },
+        },
+        y: {
+            beginAtZero: true,
+            grid: { color: isDark.value ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' },
+            ticks: {
+                color: isDark.value ? '#9ca3af' : '#6b7280',
+                callback: value => '৳' + Number(value).toLocaleString('en-IN'),
+            },
+        },
+    },
+}))
 
 function formatPrice(price) {
     return '৳' + Number(price).toLocaleString('en-IN')
@@ -76,14 +130,8 @@ function visitOrder(id) {
                         <h2 class="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white">Category Sales (Weekly)</h2>
                     </div>
                     <div class="p-4 sm:p-5">
-                        <div v-if="weeklyCategorySales.length" class="space-y-3">
-                            <div v-for="cat in weeklyCategorySales" :key="cat.category" class="flex items-center gap-3">
-                                <span class="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 w-20 sm:w-24 truncate shrink-0">{{ cat.category }}</span>
-                                <div class="flex-1 h-5 sm:h-6 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500" :style="{ width: (Number(cat.total) / maxCategoryTotal * 100) + '%' }"></div>
-                                </div>
-                                <span class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white w-20 sm:w-24 text-right shrink-0">{{ formatPrice(cat.total) }}</span>
-                            </div>
+                        <div v-if="weeklyCategorySales.length" class="relative h-64 sm:h-72">
+                            <Bar :data="chartData" :options="chartOptions" />
                         </div>
                         <p v-else class="text-sm text-gray-500 dark:text-gray-400 text-center py-6">No sales data this week.</p>
                     </div>
@@ -91,25 +139,19 @@ function visitOrder(id) {
 
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
                     <div class="px-4 sm:px-5 py-4 border-b border-gray-200 dark:border-gray-800">
-                        <h2 class="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white">Low Stock</h2>
+                        <h2 class="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white">Top Sellers</h2>
                     </div>
                     <div class="p-4 space-y-4">
-                        <div v-for="product in lowStockProducts" :key="product.id" class="flex items-center gap-3">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0">
-                                <img v-if="product.image_url" :src="product.image_url" :alt="product.title" class="w-full h-full object-cover" />
-                                <div v-else class="w-full h-full flex items-center justify-center text-gray-400 text-xs">N/A</div>
+                        <div v-for="topSeller in topSellers" :key="topSeller.id" class="flex items-center gap-3">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs sm:text-sm font-bold shrink-0">
+                                {{ topSeller.name?.charAt(0)?.toUpperCase() || '?' }}
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">{{ product.title }}</p>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <div class="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                        <div class="h-full rounded-full bg-red-500" :style="{ width: Math.min(100, ((product.total_stock || product.quantity || 0) / 10) * 100) + '%' }"></div>
-                                    </div>
-                                    <span class="text-xs font-medium" :class="(product.total_stock || product.quantity || 0) === 0 ? 'text-red-600' : 'text-amber-600'">{{ product.total_stock || product.quantity || 0 }}</span>
-                                </div>
+                                <p class="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">{{ topSeller.name }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ topSeller.user_detail?.mobile || 'No mobile' }}</p>
                             </div>
                         </div>
-                        <div v-if="lowStockProducts.length === 0" class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">All products well-stocked!</div>
+                        <div v-if="topSellers.length === 0" class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">No sellers yet.</div>
                     </div>
                 </div>
             </div>
@@ -143,28 +185,6 @@ function visitOrder(id) {
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 sm:p-5">
-                <h2 class="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-                <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-3">
-                    <Link :href="route('admin.products.create')" class="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg bg-blue-600 text-white text-xs sm:text-sm font-medium hover:bg-blue-700 transition shadow-sm">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        New Product
-                    </Link>
-                    <Link :href="route('admin.categories.create')" class="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg bg-emerald-600 text-white text-xs sm:text-sm font-medium hover:bg-emerald-700 transition shadow-sm">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        New Category
-                    </Link>
-                    <Link :href="route('admin.orders.index')" class="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg bg-amber-600 text-white text-xs sm:text-sm font-medium hover:bg-amber-700 transition shadow-sm">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                        Orders
-                    </Link>
-                    <Link :href="route('admin.settings.company')" class="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg bg-purple-600 text-white text-xs sm:text-sm font-medium hover:bg-purple-700 transition shadow-sm">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        Settings
-                    </Link>
                 </div>
             </div>
         </div>

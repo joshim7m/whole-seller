@@ -7,6 +7,12 @@ import { useCart } from '@/composables/useCart'
 const page = usePage()
 const isGuest = computed(() => !page.props.auth?.user)
 
+function renderContent(html) {
+    if (!html) return ''
+    if (/<[a-z][\s\S]*>/i.test(html)) return html
+    return html.split(/\n+/).map(p => `<p>${p.replace(/</g, '&lt;')}</p>`).join('')
+}
+
 const props = defineProps({
     product: { type: Object, default: () => ({}) },
     related: { type: Array, default: () => [] }
@@ -186,7 +192,7 @@ const hasOptions = computed(() => uniqueSizes.value.length + uniqueColors.value.
                     </div>
                 </div>
 
-                <p class="mt-4 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{{ product.description }}</p>
+                <div v-if="product.description" class="rich-text-content mt-4 text-sm text-gray-600 dark:text-gray-400" v-html="renderContent(product.description)"></div>
 
                 <div v-if="uniqueSizes.length" class="mt-4">
                     <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Size</p>
@@ -231,6 +237,11 @@ const hasOptions = computed(() => uniqueSizes.value.length + uniqueColors.value.
                     </Link>
                 </div>
             </div>
+        </div>
+
+        <div v-if="product.specification" class="mt-10">
+            <h2 class="text-lg sm:text-xl font-bold text-gray-800 dark:text-white mb-3">Specification</h2>
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 sm:p-6 rich-text-content text-sm text-gray-600 dark:text-gray-400" v-html="renderContent(product.specification)"></div>
         </div>
 
         <section v-if="related && related.length" class="mt-12">

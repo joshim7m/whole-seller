@@ -3,8 +3,11 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\InstagramImageController;
+use App\Http\Controllers\Admin\NoticeController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SellerController;
@@ -57,5 +60,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::resource('instagram-images', InstagramImageController::class);
         Route::resource('social-media', SocialMediaController::class)->parameters(['social-media' => 'socialMedium']);
+        Route::resource('faqs', FaqController::class)->except('show');
+        Route::resource('notices', NoticeController::class)->except('show');
+        Route::resource('pages', PageController::class)->except('show');
     });
 });

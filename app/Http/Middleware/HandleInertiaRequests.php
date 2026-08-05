@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Page;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -27,6 +28,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'settings' => Setting::all()->pluck('value', 'key'),
+            'pages' => Page::active()->orderBy('title')->get(),
         ];
     }
 }

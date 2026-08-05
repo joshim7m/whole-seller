@@ -16,7 +16,7 @@ defineProps({
             <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">Top Selling Products</h2>
             <Link :href="route('products.index')" class="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium">View All</Link>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-3">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
             <ProductCard v-for="product in products" :key="product.id" :product="product" compact />
         </div>
     </section>

@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             InstagramImagesSeeder::class,
             SocialMediaSeeder::class,
+            FaqSeeder::class,
+            NoticeSeeder::class,
+            PageSeeder::class,
             PaymentMethodSeeder::class,
         ]);
     }

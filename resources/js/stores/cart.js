@@ -3,6 +3,15 @@ import { ref, computed } from 'vue'
 
 export const useCartStore = defineStore('cart', () => {
     const items = ref([])
+    const drawerOpen = ref(false)
+
+    function openDrawer() {
+        drawerOpen.value = true
+    }
+
+    function closeDrawer() {
+        drawerOpen.value = false
+    }
 
     function load() {
         const stored = sessionStorage.getItem('cart')
@@ -49,5 +58,5 @@ export const useCartStore = defineStore('cart', () => {
         save()
     }
 
-    return { items, count, total, load, addItem, updateQuantity, removeItem, clear }
+    return { items, count, total, drawerOpen, load, addItem, updateQuantity, removeItem, clear, openDrawer, closeDrawer }
 })
