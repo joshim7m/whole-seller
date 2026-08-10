@@ -14,17 +14,31 @@ class InstagramImagesSeeder extends Seeder
     {
         InstagramImage::create([
             'title' => 'New Collection Drop',
-            'image' => 'images/instagram/placeholder-1.svg',
+            'image' => 'images/instagram/placeholder-0.jpg',
         ]);
 
         InstagramImage::create([
             'title' => 'Style of the Week',
-            'image' => 'images/instagram/placeholder-2.svg',
+            'image' => 'images/instagram/placeholder-1.jpg',
         ]);
 
         InstagramImage::create([
             'title' => 'Customer Favorites',
-            'image' => 'images/instagram/placeholder-3.svg',
+            'image' => 'images/instagram/placeholder-2.jpg',
+        ]);
+        InstagramImage::create([
+            'title' => 'New Collection Drop',
+            'image' => 'images/instagram/placeholder-3.jpg',
+        ]);
+
+        InstagramImage::create([
+            'title' => 'Style of the Week',
+            'image' => 'images/instagram/placeholder-4.jpg',
+        ]);
+
+        InstagramImage::create([
+            'title' => 'Customer Favorites',
+            'image' => 'images/instagram/placeholder-5.jpg',
         ]);
     }
 }

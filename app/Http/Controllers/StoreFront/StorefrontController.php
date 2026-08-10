@@ -145,9 +145,22 @@ class StorefrontController extends Controller
         $related = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('status', 'active')
-            ->with('images')
-            ->take(4)
+            ->with('images', 'variants')
+            ->take(6)
             ->get();
+
+        if ($related->count() < 6) {
+            $excludedIds = $related->pluck('id')->push($product->id);
+
+            $more = Product::where('status', 'active')
+                ->whereNotIn('id', $excludedIds)
+                ->with('images', 'variants')
+                ->inRandomOrder()
+                ->take(6 - $related->count())
+                ->get();
+
+            $related = $related->concat($more);
+        }
 
         return Inertia::render('StoreFront/Products/Show', compact('product', 'related'));
     }
