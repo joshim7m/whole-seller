@@ -21,6 +21,7 @@ Route::middleware('check-status')->group(function () {
     Route::get('/categories', [StorefrontController::class, 'categories'])->name('categories.index');
     Route::get('/cart', [StorefrontController::class, 'cart'])->name('cart.index');
     Route::get('/wishlist', [StorefrontController::class, 'wishlistPage'])->name('wishlist.index');
+    Route::post('/wishlist/export', [StorefrontController::class, 'exportWishlist'])->name('wishlist.export');
     Route::get('/products', [StorefrontController::class, 'products'])->name('products.index');
     Route::get('/new-arrivals', [StorefrontController::class, 'newArrivals'])->name('products.new-arrivals');
     Route::get('/hot-sale', [StorefrontController::class, 'hotSale'])->name('products.hot-sale');

@@ -1,6 +1,8 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { Autoplay } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import 'swiper/css';
 
 const slides = [
     {
@@ -37,107 +39,28 @@ const slides = [
     },
 ];
 
-const slide = ref(0);
-let interval = null;
-
-const track = ref(null);
-const dragging = ref(false);
-const startX = ref(0);
-const startY = ref(0);
-const dragOffset = ref(0);
-
-const trackWidth = () => track.value?.offsetWidth || 1;
-
-function goTo(i) {
-    slide.value = i;
-}
-
-function startAutoPlay() {
-    stopAutoPlay();
-    interval = setInterval(() => {
-        slide.value =
-            slide.value < slides.length - 1
-                ? slide.value + 1
-                : slides.length - 1;
-    }, 5000);
-}
-
-function stopAutoPlay() {
-    if (interval) clearInterval(interval);
-    interval = null;
-}
-
-function startDrag(e) {
-    stopAutoPlay();
-    dragging.value = false;
-    startX.value = e.touches[0].clientX;
-    startY.value = e.touches[0].clientY;
-    dragOffset.value = 0;
-}
-
-function onDrag(e) {
-    const dx = e.touches[0].clientX - startX.value;
-    const dy = e.touches[0].clientY - startY.value;
-
-    if (!dragging.value) {
-        if (Math.abs(dx) < 6) return;
-        if (Math.abs(dy) > Math.abs(dx)) return;
-        dragging.value = true;
-    }
-
-    dragOffset.value = dx;
-}
-
-function endDrag() {
-    if (dragging.value) {
-        const threshold = Math.max(60, trackWidth() * 0.12);
-
-        if (dragOffset.value <= -threshold && slide.value < slides.length - 1) {
-            slide.value += 1;
-        } else if (dragOffset.value >= threshold && slide.value > 0) {
-            slide.value -= 1;
-        }
-    }
-
-    dragging.value = false;
-    dragOffset.value = 0;
-    startAutoPlay();
-}
-
-onMounted(startAutoPlay);
-onUnmounted(stopAutoPlay);
+const modules = [Autoplay];
 </script>
 
 <template>
     <section
-        class="relative mb-16 touch-pan-y select-none overflow-hidden rounded-2xl bg-gray-900"
+        class="relative mb-16 select-none"
         role="region"
         aria-label="Hero slideshow"
-        @touchstart.passive="startDrag"
-        @touchmove.passive="onDrag"
-        @touchend="endDrag"
-        @touchcancel="endDrag"
     >
-        <div
-            :style="{
-                transform:
-                    'translateX(calc(-' +
-                    slide * 100 +
-                    '% + ' +
-                    dragOffset +
-                    'px))',
+        <Swiper
+            :modules="modules"
+            :loop="true"
+            :autoplay="{
+                delay: 5000,
+                disableOnInteraction: false,
             }"
-            :class="
-                dragging
-                    ? 'flex will-change-transform'
-                    : 'flex transition-transform duration-700 ease-in-out will-change-transform'
-            "
-            ref="track"
+            class="swiper-custom rounded-2xl lg:aspect-[16/9]"
         >
-            <div
+            <SwiperSlide
                 v-for="(s, i) in slides"
                 :key="i"
-                class="relative h-[400px] w-full flex-shrink-0 md:h-[500px] lg:h-[560px]"
+                class="relative h-[400px] md:h-[500px] lg:h-full"
             >
                 <img
                     :src="s.image"
@@ -173,24 +96,7 @@ onUnmounted(stopAutoPlay);
                         >
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div
-            class="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2.5"
-        >
-            <button
-                v-for="(s, i) in slides"
-                :key="i"
-                @click="goTo(i)"
-                class="h-2.5 w-2.5 rounded-full transition-all duration-300"
-                :class="
-                    slide === i
-                        ? 'w-6 bg-white'
-                        : 'bg-white/40 hover:bg-white/60'
-                "
-                :aria-label="'Go to slide ' + (i + 1)"
-            ></button>
-        </div>
+            </SwiperSlide>
+        </Swiper>
     </section>
 </template>

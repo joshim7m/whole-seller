@@ -15,14 +15,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class StorefrontController extends Controller
 {
     public function index()
     {
-        $categories = Category::whereNull('parent_id')->with('children')->get();
+        $categories = Category::with('children')->orderBy('id')->get();
 
-        $categoryIds = $categories->flatMap(fn (Category $category) => $category->children->pluck('id')->push($category->id));
+        $categoryIds = $categories->pluck('id');
 
         $counts = DB::table('category_product')
             ->join('products', 'products.id', '=', 'category_product.product_id')
@@ -35,14 +38,19 @@ class StorefrontController extends Controller
             ->map(fn ($value) => (int) $value);
 
         $categories->each(function (Category $category) use ($counts) {
-            $ids = $category->children->pluck('id')->push($category->id);
-            $category->products_count = $ids->sum(fn (int $id) => (int) $counts->get($id, 0));
+            $total = (int) $counts->get($category->id, 0);
+
+            if ($category->children->isNotEmpty()) {
+                $total += $category->children->sum(fn (Category $child) => (int) $counts->get($child->id, 0));
+            }
+
+            $category->products_count = $total;
         });
 
         $featured = Product::where('status', 'active')->where('featured', true)
-            ->with('category', 'images')->latest()->take(10)->get();
+            ->with('category', 'images')->latest()->take(20)->get();
 
-        $remaining = 10 - $featured->count();
+        $remaining = 20 - $featured->count();
         $latest = collect();
         if ($remaining > 0) {
             $latest = Product::where('status', 'active')->where('featured', false)
@@ -54,7 +62,7 @@ class StorefrontController extends Controller
         $newArrivals = Product::where('status', 'active')
             ->with('images')
             ->latest()
-            ->take(10)
+            ->take(20)
             ->get();
 
         $instagramImages = InstagramImage::latest()->take(6)->get();
@@ -218,6 +226,115 @@ class StorefrontController extends Controller
             ->get();
 
         return Inertia::render('StoreFront/Wishlist/Index', compact('products'));
+    }
+
+    public function exportWishlist(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:products,id'],
+        ]);
+
+        $products = Product::whereIn('id', $validated['ids'])
+            ->where('status', 'active')
+            ->with('images', 'variants')
+            ->get()
+            ->keyBy('id');
+
+        $ordered = collect($validated['ids'])
+            ->map(fn (int $id) => $products[$id] ?? null)
+            ->filter()
+            ->values();
+
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet()->setTitle('Wishlist');
+
+        $sheet->fromArray(['SL No', 'Image', 'Title', 'SKU', 'Variants', 'Price', 'Stock'], null, 'A1');
+        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+
+        $columnWidths = ['A' => 7, 'B' => 18, 'C' => 45, 'D' => 16, 'E' => 30, 'F' => 12, 'G' => 10];
+        foreach ($columnWidths as $column => $width) {
+            $sheet->getColumnDimension($column)->setWidth($width);
+        }
+
+        $row = 2;
+        foreach ($ordered as $index => $product) {
+            $sheet->setCellValue("A{$row}", $index + 1);
+            $sheet->setCellValue("C{$row}", $product->title);
+            $sheet->setCellValue("D{$row}", $product->sku);
+            $sheet->setCellValue("E{$row}", $this->variantLabel($product));
+            $sheet->setCellValue("F{$row}", $product->sale_price ?: $product->unit_price);
+            $sheet->setCellValue("G{$row}", $product->total_stock);
+            $sheet->getRowDimension($row)->setRowHeight(75);
+
+            $imagePath = $product->images->sortBy('sort_order')->first()?->image_path;
+
+            if ($imagePath) {
+                $resolved = $this->resolveImageForExport($imagePath);
+
+                if ($resolved) {
+                    $drawing = new Drawing;
+                    $drawing->setName($product->title);
+                    $drawing->setPath($resolved);
+                    $drawing->setCoordinates("B{$row}");
+                    $drawing->setHeight(70);
+                    $drawing->setOffsetX(4);
+                    $drawing->setOffsetY(4);
+                    $drawing->setWorksheet($sheet);
+                }
+            }
+
+            $row++;
+        }
+
+        $filename = 'wishlist.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            (new Xlsx($spreadsheet))->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    private function variantLabel(Product $product): string
+    {
+        return $product->variants
+            ->map(fn ($variant) => trim(implode(' / ', array_filter([$variant->size, $variant->color]))))
+            ->filter()
+            ->implode("\n");
+    }
+
+    private function resolveImageForExport(?string $imagePath): ?string
+    {
+        if (! $imagePath) {
+            return null;
+        }
+
+        if (! str_starts_with($imagePath, 'http')) {
+            $local = public_path($imagePath);
+
+            if (is_file($local)) {
+                return $local;
+            }
+        }
+
+        $url = str_starts_with($imagePath, 'http') ? $imagePath : asset($imagePath);
+
+        try {
+            $contents = @file_get_contents($url);
+
+            if ($contents === false) {
+                return null;
+            }
+
+            $temp = tempnam(sys_get_temp_dir(), 'wishlist_img');
+
+            file_put_contents($temp, $contents);
+
+            return $temp;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public function profile()
