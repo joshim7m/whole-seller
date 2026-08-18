@@ -6,6 +6,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -40,6 +41,19 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
+            if ($exception instanceof PostTooLargeException) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'The uploaded file is too large.',
+                        'errors' => ['file' => 'The uploaded file exceeds the server upload limit.'],
+                    ], 413);
+                }
+
+                return back()
+                    ->with('error', 'The uploaded file exceeds the server upload limit.')
+                    ->setStatusCode(413);
+            }
+
             if ($exception instanceof NotFoundHttpException
                 && ! $request->is('admin*')
                 && ! $request->is('api/*')

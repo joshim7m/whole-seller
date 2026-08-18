@@ -148,7 +148,7 @@ function next() {
 
         <div class="hidden md:block">
             <Swiper
-                :slides-per-view="4"
+                :slides-per-view="5"
                 :space-between="20"
                 :slides-per-group="1"
                 class="pb-5"

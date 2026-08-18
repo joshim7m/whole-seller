@@ -14,6 +14,11 @@ class SettingController extends Controller
         return Inertia::render('Admin/Settings/Company');
     }
 
+    public function siteConfig()
+    {
+        return Inertia::render('Admin/Settings/SiteConfig');
+    }
+
     public function update(Request $request)
     {
         $data = $request->except('_token', '_method');

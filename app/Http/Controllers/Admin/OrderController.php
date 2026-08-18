@@ -13,11 +13,20 @@ use Inertia\Inertia;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with('user.userDetail', 'items', 'invoice')
-            ->latest()
-            ->paginate(15);
+        $search = $request->input('search');
+        $query = Order::with('user.userDetail', 'items', 'invoice');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                    ->orWhereHas('user.userDetail', fn ($dq) => $dq->where('mobile', 'like', "%{$search}%"))
+                    ->orWhereHas('items.variant', fn ($vq) => $vq->where('sku', 'like', "%{$search}%"));
+            });
+        }
+
+        $orders = $query->latest()->paginate(15)->withQueryString();
 
         return Inertia::render('Admin/Orders/Index', compact('orders'));
     }

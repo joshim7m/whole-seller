@@ -21,6 +21,37 @@ class UserController extends Controller
         return Inertia::render('Admin/Users/Index', compact('users'));
     }
 
+    public function create()
+    {
+        $roles = Role::all();
+
+        return Inertia::render('Admin/Users/Create', compact('roles'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'role_id' => 'required|integer|exists:roles,id',
+            'user_type' => 'required|in:admin,manager,customer,reseller,wholeseller',
+            'status' => 'required|boolean',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'role_id' => $validated['role_id'],
+            'user_type' => $validated['user_type'],
+            'status' => $request->boolean('status'),
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User "'.$validated['name'].'" created successfully.');
+    }
+
     public function customers(Request $request)
     {
         $query = User::where('user_type', 'customer')

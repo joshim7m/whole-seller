@@ -14,40 +14,43 @@ class RolesAndPermissionsSeeder extends Seeder
 
     public function run(): void
     {
-        $modules = [
-            ['name' => 'Catalog'],
-            ['name' => 'Orders'],
-            ['name' => 'Users'],
-            ['name' => 'Settings'],
-        ];
+        $modules = Module::upsert(
+            [
+                ['name' => 'Catalog'],
+                ['name' => 'Orders'],
+                ['name' => 'Users'],
+                ['name' => 'Settings'],
+                ['name' => 'Content'],
+            ],
+            ['name'],
+            ['name']
+        );
 
-        foreach ($modules as $data) {
-            Module::create($data);
-        }
+        $moduleIds = Module::pluck('id', 'name');
 
         $permissions = [
-            ['name' => 'Manage Catalog', 'module_id' => 1, 'slug' => 'manage-catalog'],
-            ['name' => 'View Orders', 'module_id' => 2, 'slug' => 'view-orders'],
-            ['name' => 'Manage Orders', 'module_id' => 2, 'slug' => 'manage-orders'],
-            ['name' => 'Checkout Order', 'module_id' => 2, 'slug' => 'checkout-order'],
-            ['name' => 'Manage Users', 'module_id' => 3, 'slug' => 'manage-users'],
-            ['name' => 'Manage Settings', 'module_id' => 4, 'slug' => 'manage-settings'],
+            ['name' => 'Manage Catalog', 'module_id' => $moduleIds['Catalog'], 'slug' => 'manage-catalog'],
+            ['name' => 'View Orders', 'module_id' => $moduleIds['Orders'], 'slug' => 'view-orders'],
+            ['name' => 'Manage Orders', 'module_id' => $moduleIds['Orders'], 'slug' => 'manage-orders'],
+            ['name' => 'Checkout Order', 'module_id' => $moduleIds['Orders'], 'slug' => 'checkout-order'],
+            ['name' => 'Manage Users', 'module_id' => $moduleIds['Users'], 'slug' => 'manage-users'],
+            ['name' => 'Manage Settings', 'module_id' => $moduleIds['Settings'], 'slug' => 'manage-settings'],
+            ['name' => 'Manage Content', 'module_id' => $moduleIds['Content'], 'slug' => 'manage-content'],
         ];
 
-        foreach ($permissions as $data) {
-            Permission::create($data);
-        }
+        Permission::upsert($permissions, ['slug'], ['name', 'module_id']);
 
-        $admin = Role::create(['name' => 'Admin', 'slug' => 'admin']);
-        $manager = Role::create(['name' => 'Manager', 'slug' => 'manager']);
-        $customer = Role::create(['name' => 'Customer', 'slug' => 'customer']);
+        $admin = Role::firstOrCreate(['slug' => 'admin'], ['name' => 'Admin']);
+        $manager = Role::firstOrCreate(['slug' => 'manager'], ['name' => 'Manager']);
+        $customer = Role::firstOrCreate(['slug' => 'customer'], ['name' => 'Customer']);
 
-        $admin->permissions()->attach(Permission::all()->pluck('id'));
-        $manager->permissions()->attach(Permission::whereIn('slug', [
+        $admin->permissions()->sync(Permission::pluck('id'));
+        $manager->permissions()->sync(Permission::whereIn('slug', [
             'manage-catalog',
             'view-orders',
             'manage-orders',
+            'manage-content',
         ])->pluck('id'));
-        $customer->permissions()->attach(Permission::where('slug', 'checkout-order')->pluck('id'));
+        $customer->permissions()->sync(Permission::where('slug', 'checkout-order')->pluck('id'));
     }
 }

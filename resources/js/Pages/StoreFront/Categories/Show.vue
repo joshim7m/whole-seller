@@ -44,33 +44,6 @@ function changeSort(event) {
             </div>
         </div>
 
-        <div v-if="category.children && category.children.length" class="mb-8">
-            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Subcategories</h3>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                <Link
-                    v-for="child in category.children" :key="child.id"
-                    :href="route('category.show', child.slug || child.id)"
-                    class="group relative rounded-xl overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md dark:hover:shadow-gray-900/50 transition-all"
-                >
-                    <div class="aspect-[4/3] bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-300 dark:text-gray-600 overflow-hidden">
-                        <img
-                            v-if="child.image_url"
-                            :src="child.image_url"
-                            :alt="child.name"
-                            class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                        >
-                        <svg v-else class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
-                            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                    </div>
-                    <div class="p-2.5 text-center">
-                        <h4 class="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ child.name }}</h4>
-                        <p v-if="child.products_count" class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{{ child.products_count }} items</p>
-                    </div>
-                </Link>
-            </div>
-        </div>
-
         <div class="flex lg:hidden items-center gap-2 mb-4">
             <button type="button" @click="filterOpen = true" class="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:border-gray-400 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>

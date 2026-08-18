@@ -1,10 +1,28 @@
 <script setup>
 import AdminMaster from '@/Layouts/Admin/AdminMaster.vue'
-import { Head, Link } from '@inertiajs/vue3'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
+import { ref, watch } from 'vue'
 
 defineProps({
     orders: { type: Object, required: true },
 })
+
+const page = usePage()
+const search = ref(page.url.split('search=')[1]?.split('&')[0] || '')
+let timeout = null
+
+function onSearch() {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => {
+        const params = new URLSearchParams(window.location.search)
+        if (search.value) {
+            params.set('search', search.value)
+        } else {
+            params.delete('search')
+        }
+        router.get(route('admin.orders.index') + '?' + params.toString(), {}, { preserveScroll: true, preserveState: true })
+    }, 400)
+}
 
 function formatPrice(price) {
     return '৳' + price.toLocaleString('en-IN')
@@ -32,6 +50,21 @@ function paymentBadge(status) {
             </div>
 
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-800">
+                    <div class="relative max-w-md">
+                        <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                        <input
+                            v-model="search"
+                            @input="onSearch"
+                            type="text"
+                            placeholder="Search by order #, phone, or SKU..."
+                            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                        />
+                        <button v-if="search" @click="search = ''; onSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
                 <div class="overflow-x-auto admin-scrollbar">
                     <table class="w-full text-sm">
                         <thead>

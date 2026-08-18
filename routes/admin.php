@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\CatalogController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FaqController;
@@ -41,6 +42,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('orders/{order}/invoice/download', [OrderController::class, 'downloadInvoice'])->name('orders.invoice');
 
         Route::get('users', [UserController::class, 'index'])->name('users.index');
+        Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('users', [UserController::class, 'store'])->name('users.store');
         Route::get('users/customers', [UserController::class, 'customers'])->name('users.customers');
         Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
@@ -56,7 +59,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update');
 
         Route::get('settings/company', [SettingController::class, 'companyInfo'])->name('settings.company');
+        Route::get('settings/site-config', [SettingController::class, 'siteConfig'])->name('settings.site-config');
         Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
+
+        Route::get('settings/catalog', [CatalogController::class, 'index'])->name('settings.catalog');
+        Route::post('settings/catalog/export', [CatalogController::class, 'export'])->name('settings.catalog.export');
+        Route::post('settings/catalog/import', [CatalogController::class, 'import'])->name('settings.catalog.import');
+        Route::get('settings/catalog/status', [CatalogController::class, 'status'])->name('settings.catalog.status');
+        Route::get('settings/catalog/exports/{export}/download', [CatalogController::class, 'download'])->name('settings.catalog.download');
 
         Route::resource('instagram-images', InstagramImageController::class);
         Route::resource('social-media', SocialMediaController::class)->parameters(['social-media' => 'socialMedium']);

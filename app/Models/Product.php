@@ -42,21 +42,25 @@ class Product extends Model
         });
     }
 
+    /** @return BelongsTo<Category, $this> */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
+    /** @return BelongsToMany<Category, $this> */
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
     }
 
+    /** @return HasMany<ProductImage, $this> */
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class, 'product_id');
     }
 
+    /** @return HasMany<ProductVariant, $this> */
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);

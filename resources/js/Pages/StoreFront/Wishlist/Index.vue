@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, ref } from 'vue';
 import ProductCard from '@/Components/StoreFront/ProductCard.vue';
 import { useCart } from '@/composables/useCart';
 import { useWishlist } from '@/composables/useWishlist';
@@ -88,25 +88,16 @@ function addAllToCart() {
     cart.openDrawer();
 }
 
-const confirmClear = ref(false);
-let clearTimer = null;
+const showClearModal = ref(false);
 
-function clearAll() {
-    if (!confirmClear.value) {
-        confirmClear.value = true;
-        clearTimer = setTimeout(() => {
-            confirmClear.value = false;
-        }, 3000);
-
-        return;
-    }
-
-    confirmClear.value = false;
-    clearTimeout(clearTimer);
-    wishlist.clear();
+function confirmClearAll() {
+    showClearModal.value = true;
 }
 
-onBeforeUnmount(() => clearTimeout(clearTimer));
+function executeClear() {
+    showClearModal.value = false;
+    wishlist.clear();
+}
 </script>
 
 <template>
@@ -174,13 +165,8 @@ onBeforeUnmount(() => clearTimeout(clearTimer));
                 </button>
                 <button
                     type="button"
-                    @click="clearAll"
-                    :class="
-                        confirmClear
-                            ? 'border-red-600 bg-red-600 text-white'
-                            : 'border-red-200 text-red-500 hover:bg-red-50 dark:border-red-500/40 dark:text-red-400 dark:hover:bg-red-900/20'
-                    "
-                    class="inline-flex items-center gap-2 rounded-full border bg-transparent px-4 py-2.5 text-sm font-semibold transition"
+                    @click="confirmClearAll"
+                    class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-transparent px-4 py-2.5 text-sm font-semibold text-red-500 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-400 dark:hover:bg-red-900/20"
                 >
                     <svg
                         class="h-4 w-4"
@@ -195,7 +181,7 @@ onBeforeUnmount(() => clearTimeout(clearTimer));
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                         />
                     </svg>
-                    {{ confirmClear ? 'Click to confirm' : 'Clear All' }}
+                    Clear All
                 </button>
             </div>
         </div>
@@ -238,5 +224,43 @@ onBeforeUnmount(() => clearTimeout(clearTimer));
                 Explore Products
             </Link>
         </div>
+
+        <Teleport to="body">
+            <Transition
+                enter-active-class="duration-200 ease-out"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="duration-150 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div v-if="showClearModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.escape.window="showClearModal = false">
+                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showClearModal = false"></div>
+                    <div class="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-500/15 mx-auto">
+                            <svg class="h-6 w-6 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                        </div>
+                        <h3 class="mt-4 text-center text-lg font-bold text-gray-900 dark:text-white">Clear Wishlist?</h3>
+                        <p class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">This will remove all {{ saved.length }} {{ saved.length === 1 ? 'item' : 'items' }} from your wishlist. This action cannot be undone.</p>
+                        <div class="mt-6 flex gap-3">
+                            <button
+                                @click="showClearModal = false"
+                                class="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                @click="executeClear"
+                                class="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+                            >
+                                Yes, Clear All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
     </FrontEndMaster>
 </template>

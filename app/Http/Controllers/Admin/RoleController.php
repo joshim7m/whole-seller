@@ -12,7 +12,7 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $roles = Role::withCount('users')->get();
+        $roles = Role::WithCount('users')->get();
 
         return Inertia::render('Admin/Roles/Index', compact('roles'));
     }

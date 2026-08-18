@@ -136,46 +136,56 @@ const colorHex = (color) => {
 </script>
 
 <template>
-    <aside class="space-y-5">
-        <div class="flex items-center justify-between">
+    <aside class="filter-sidebar h-full overflow-y-auto pr-1">
+        <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                </svg>
-                <h2 class="font-bold text-gray-800 dark:text-gray-100 text-sm">Filters</h2>
-                <span v-if="activeFilterCount" class="text-[10px] font-semibold bg-blue-600 text-white px-1.5 py-0.5 rounded-full">{{ activeFilterCount }}</span>
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D9531E] to-amber-400 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                    </svg>
+                </div>
+                <h2 class="font-bold text-gray-900 dark:text-white text-sm tracking-wide">Filters</h2>
+                <span v-if="activeFilterCount" class="min-w-[20px] h-5 flex items-center justify-center text-[10px] font-bold bg-[#D9531E] text-white px-1.5 rounded-full">{{ activeFilterCount }}</span>
             </div>
-            <button v-if="activeFilterCount" @click="clearFilters" class="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">Clear all</button>
+            <button v-if="activeFilterCount" @click="clearFilters" class="text-xs text-[#D9531E] dark:text-orange-400 hover:text-[#b84318] dark:hover:text-orange-300 font-semibold transition-colors">Clear all</button>
         </div>
 
-        <hr class="border-gray-200 dark:border-gray-700">
-
-        <div v-if="categories.length" class="space-y-1">
-            <button @click="categoryOpen = !categoryOpen" class="flex items-center justify-between w-full text-left group">
-                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Category</span>
-                <svg class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 transition-transform duration-200" :class="{ 'rotate-180': categoryOpen }" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        <div v-if="categories.length" class="mb-1">
+            <button @click="categoryOpen = !categoryOpen" class="w-full flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group">
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">Category</span>
+                <div class="flex items-center gap-1.5">
+                    <span v-if="selectedCats.length" class="text-[10px] font-bold bg-[#D9531E]/10 text-[#D9531E] dark:text-orange-400 px-1.5 py-0.5 rounded-md">{{ selectedCats.length }}</span>
+                    <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform duration-200" :class="{ 'rotate-180': categoryOpen }" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </div>
             </button>
-            <div v-show="categoryOpen" class="mt-2 space-y-1 max-h-56 overflow-y-auto category-scroll">
-                <label v-for="cat in categories" :key="cat.id" class="flex items-center gap-2.5 cursor-pointer group rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 px-1.5 py-1 -mx-1.5 transition-colors">
-                    <input
-                        type="checkbox"
-                        :checked="selectedCats.includes(String(cat.id))"
-                        @change="toggleCategory(cat.id)"
-                        class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 w-4 h-4 dark:bg-gray-700 dark:checked:bg-blue-600 dark:checked:border-blue-600"
-                    >
-                    <span class="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors flex-1">{{ cat.name }}</span>
-                    <span class="text-[11px] text-gray-400 dark:text-gray-600 font-medium">{{ cat.products_count || 0 }}</span>
+            <div v-show="categoryOpen" class="mt-1 ml-1 space-y-0.5 max-h-52 overflow-y-auto filter-scroll">
+                <label v-for="cat in categories" :key="cat.id" class="flex items-center gap-2.5 cursor-pointer group rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 px-2 py-1.5 transition-colors">
+                    <span class="relative flex items-center justify-center w-4 h-4">
+                        <input
+                            type="checkbox"
+                            :checked="selectedCats.includes(String(cat.id))"
+                            @change="toggleCategory(cat.id)"
+                            class="peer sr-only"
+                        >
+                        <span class="w-4 h-4 rounded border-2 border-gray-300 dark:border-gray-600 peer-checked:bg-[#D9531E] peer-checked:border-[#D9531E] dark:peer-checked:bg-orange-500 dark:peer-checked:border-orange-500 transition-all flex items-center justify-center">
+                            <svg class="w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                    </span>
+                    <span class="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors flex-1 truncate">{{ cat.name }}</span>
+                    <span class="text-[11px] text-gray-400 dark:text-gray-600 font-medium bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-md">{{ cat.products_count || 0 }}</span>
                 </label>
             </div>
-            <hr class="border-gray-200 dark:border-gray-700 mt-3">
         </div>
 
-        <div v-if="sizes.length" class="space-y-1">
-            <button @click="sizeOpen = !sizeOpen" class="flex items-center justify-between w-full text-left group">
-                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Size</span>
-                <svg class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 transition-transform duration-200" :class="{ 'rotate-180': sizeOpen }" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        <div v-if="sizes.length" class="mb-1">
+            <button @click="sizeOpen = !sizeOpen" class="w-full flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group">
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">Size</span>
+                <div class="flex items-center gap-1.5">
+                    <span v-if="selectedSizes.length" class="text-[10px] font-bold bg-[#D9531E]/10 text-[#D9531E] dark:text-orange-400 px-1.5 py-0.5 rounded-md">{{ selectedSizes.length }}</span>
+                    <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform duration-200" :class="{ 'rotate-180': sizeOpen }" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </div>
             </button>
-            <div v-show="sizeOpen" class="mt-2 flex flex-wrap gap-1.5">
+            <div v-show="sizeOpen" class="mt-1 ml-1 flex flex-wrap gap-1.5 px-1">
                 <label v-for="size in sizes" :key="size" class="cursor-pointer">
                     <input
                         type="checkbox"
@@ -183,21 +193,23 @@ const colorHex = (color) => {
                         @change="toggleSize(size)"
                         class="sr-only peer"
                     >
-                    <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg border transition-all peer-checked:bg-gray-900 dark:peer-checked:bg-white peer-checked:text-white dark:peer-checked:text-gray-900 peer-checked:border-gray-900 dark:peer-checked:border-white peer-hover:border-gray-400 dark:peer-hover:border-gray-500 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
+                    <span class="inline-flex items-center justify-center min-w-[36px] px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all peer-checked:bg-gray-900 dark:peer-checked:bg-white peer-checked:text-white dark:peer-checked:text-gray-900 peer-checked:border-gray-900 dark:peer-checked:border-white peer-hover:border-gray-400 dark:peer-hover:border-gray-500 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
                         {{ size }}
                     </span>
                 </label>
             </div>
-            <hr class="border-gray-200 dark:border-gray-700 mt-3">
         </div>
 
-        <div v-if="colors.length" class="space-y-1">
-            <button @click="colorOpen = !colorOpen" class="flex items-center justify-between w-full text-left group">
-                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Color</span>
-                <svg class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 transition-transform duration-200" :class="{ 'rotate-180': colorOpen }" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        <div v-if="colors.length" class="mb-1">
+            <button @click="colorOpen = !colorOpen" class="w-full flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group">
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">Color</span>
+                <div class="flex items-center gap-1.5">
+                    <span v-if="selectedColors.length" class="text-[10px] font-bold bg-[#D9531E]/10 text-[#D9531E] dark:text-orange-400 px-1.5 py-0.5 rounded-md">{{ selectedColors.length }}</span>
+                    <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform duration-200" :class="{ 'rotate-180': colorOpen }" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </div>
             </button>
-            <div v-show="colorOpen" class="mt-2 flex flex-wrap gap-2">
-                <label v-for="color in colors" :key="color" class="cursor-pointer group flex flex-col items-center gap-0.5" :title="color">
+            <div v-show="colorOpen" class="mt-1 ml-1 flex flex-wrap gap-2.5 px-1">
+                <label v-for="color in colors" :key="color" class="cursor-pointer group flex flex-col items-center gap-1" :title="color">
                     <input
                         type="checkbox"
                         :checked="selectedColors.includes(color)"
@@ -205,58 +217,57 @@ const colorHex = (color) => {
                         class="sr-only peer"
                     >
                     <span
-                        class="inline-block w-7 h-7 rounded-full border-2 transition-all peer-checked:scale-110 peer-checked:shadow-md peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-blue-600 dark:peer-checked:ring-offset-gray-900"
+                        class="w-8 h-8 rounded-full border-2 transition-all duration-200 peer-checked:scale-110 peer-checked:shadow-lg peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-[#D9531E] dark:peer-checked:ring-offset-gray-900 group-hover:scale-105"
                         :style="{
                             backgroundColor: colorHex(color),
-                            borderColor: color.toLowerCase() === 'white' || color.toLowerCase() === 'beige' || color.toLowerCase() === 'champagne' ? '#d1d5db' : 'transparent'
+                            borderColor: color.toLowerCase() === 'white' || color.toLowerCase() === 'beige' || color.toLowerCase() === 'champagne' ? '#e5e7eb' : 'transparent'
                         }"
                     ></span>
-                    <span class="text-[10px] text-gray-400 dark:text-gray-500 truncate max-w-[3rem] text-center leading-tight peer-checked:text-blue-600 dark:peer-checked:text-blue-400 transition-colors">{{ color }}</span>
+                    <span class="text-[10px] text-gray-400 dark:text-gray-500 truncate max-w-[3.5rem] text-center leading-tight peer-checked:text-[#D9531E] dark:peer-checked:text-orange-400 transition-colors font-medium">{{ color }}</span>
                 </label>
             </div>
-            <hr class="border-gray-200 dark:border-gray-700 mt-3">
         </div>
 
-        <div v-if="prices" class="space-y-1">
-            <button @click="priceOpen = !priceOpen" class="flex items-center justify-between w-full text-left group">
-                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Price Range</span>
-                <svg class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 transition-transform duration-200" :class="{ 'rotate-180': priceOpen }" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        <div v-if="prices" class="mb-1">
+            <button @click="priceOpen = !priceOpen" class="w-full flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group">
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">Price Range</span>
+                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform duration-200" :class="{ 'rotate-180': priceOpen }" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div v-show="priceOpen" class="mt-3 space-y-3">
+            <div v-show="priceOpen" class="mt-1 ml-1 px-1 space-y-3">
                 <div class="flex items-center gap-2">
                     <div class="flex-1">
-                        <label class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide font-medium">Min</label>
+                        <label class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold">Min</label>
                         <div class="relative mt-1">
-                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500 font-medium">৳</span>
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500 font-medium">&#2547;</span>
                             <input
                                 v-model.number="minPrice"
                                 type="number"
                                 :min="prices.min_price || 0"
                                 :max="maxPrice"
-                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg pl-6 pr-2.5 py-1.5 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                                class="w-full border border-gray-200 dark:border-gray-700 rounded-lg pl-7 pr-2.5 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 focus:outline-none focus:border-[#D9531E] dark:focus:border-orange-500 focus:ring-1 focus:ring-[#D9531E]/20 dark:focus:ring-orange-500/20 transition-all"
                             >
                         </div>
                     </div>
-                    <span class="text-gray-300 dark:text-gray-600 mt-5">—</span>
+                    <span class="text-gray-300 dark:text-gray-600 mt-5 text-sm">&mdash;</span>
                     <div class="flex-1">
-                        <label class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide font-medium">Max</label>
+                        <label class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold">Max</label>
                         <div class="relative mt-1">
-                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500 font-medium">৳</span>
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500 font-medium">&#2547;</span>
                             <input
                                 v-model.number="maxPrice"
                                 type="number"
                                 :min="minPrice"
                                 :max="prices.max_price || 100000"
-                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg pl-6 pr-2.5 py-1.5 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                                class="w-full border border-gray-200 dark:border-gray-700 rounded-lg pl-7 pr-2.5 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 focus:outline-none focus:border-[#D9531E] dark:focus:border-orange-500 focus:ring-1 focus:ring-[#D9531E]/20 dark:focus:ring-orange-500/20 transition-all"
                             >
                         </div>
                     </div>
                 </div>
                 <button
                     @click="applyPrice"
-                    class="w-full text-xs font-semibold bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white py-2 rounded-lg transition"
+                    class="w-full text-xs font-semibold bg-gradient-to-r from-[#D9531E] to-amber-500 hover:from-[#b84318] hover:to-amber-600 text-white py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md"
                 >
-                    Apply
+                    Apply Price
                 </button>
             </div>
         </div>
@@ -264,31 +275,46 @@ const colorHex = (color) => {
 </template>
 
 <style scoped>
-.category-scroll::-webkit-scrollbar {
-    width: 5px;
+.filter-scroll::-webkit-scrollbar {
+    width: 4px;
 }
-.category-scroll::-webkit-scrollbar-track {
+.filter-scroll::-webkit-scrollbar-track {
     background: transparent;
 }
-.category-scroll::-webkit-scrollbar-thumb {
-    background: #d1d5db;
+.filter-scroll::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
     border-radius: 999px;
-    border: 1px solid transparent;
-    background-clip: content-box;
 }
-.category-scroll::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
-    border: 1px solid transparent;
-    background-clip: content-box;
+.filter-scroll::-webkit-scrollbar-thumb:hover {
+    background: #d1d5db;
 }
-:global(.dark) .category-scroll::-webkit-scrollbar-thumb {
+:global(.dark) .filter-scroll::-webkit-scrollbar-thumb {
+    background: #374151;
+}
+:global(.dark) .filter-scroll::-webkit-scrollbar-thumb:hover {
     background: #4b5563;
-    border: 1px solid transparent;
-    background-clip: content-box;
 }
-:global(.dark) .category-scroll::-webkit-scrollbar-thumb:hover {
-    background: #6b7280;
-    border: 1px solid transparent;
-    background-clip: content-box;
+
+.filter-sidebar::-webkit-scrollbar {
+    width: 3px;
+}
+.filter-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.filter-sidebar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 999px;
+}
+.filter-sidebar:hover::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+}
+.filter-sidebar:hover::-webkit-scrollbar-thumb:hover {
+    background: #d1d5db;
+}
+:global(.dark) .filter-sidebar:hover::-webkit-scrollbar-thumb {
+    background: #374151;
+}
+:global(.dark) .filter-sidebar:hover::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
 }
 </style>

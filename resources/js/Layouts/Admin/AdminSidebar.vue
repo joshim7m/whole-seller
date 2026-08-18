@@ -101,6 +101,18 @@ const settingsSubItems = [
         icon: 'M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21',
     },
     {
+        label: 'Site Config',
+        route: 'admin.settings.site-config',
+        pattern: 'admin.settings.site-config',
+        icon: 'M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75',
+    },
+    {
+        label: 'Catalog Import/Export',
+        route: 'admin.settings.catalog',
+        pattern: 'admin.settings.catalog*',
+        icon: 'M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5',
+    },
+    {
         label: 'Instagram',
         route: 'admin.instagram-images.index',
         pattern: 'admin.instagram-images.*',
