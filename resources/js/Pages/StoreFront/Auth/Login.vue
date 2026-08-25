@@ -5,15 +5,12 @@ import FrontEndMaster from '@/Layouts/Frontend/FrontEndMaster.vue'
 const form = useForm({
     email: '',
     password: '',
-    remember: '0'
+    remember: false
 })
 
 function submit() {
     form.post(route('login'), {
-        onFinish: () => {
-            form.reset('password')
-            form.remember = '0'
-        },
+        onFinish: () => form.reset('password'),
         preserveState: (page) => Object.keys(page.props.errors).length > 0
     })
 }
@@ -67,8 +64,6 @@ function submit() {
                             <input
                                 type="checkbox"
                                 v-model="form.remember"
-                                :true-value="'1'"
-                                :false-value="'0'"
                                 class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 w-4 h-4 dark:bg-gray-700"
                             >
                             <span class="text-sm text-gray-600 dark:text-gray-400">Remember me</span>

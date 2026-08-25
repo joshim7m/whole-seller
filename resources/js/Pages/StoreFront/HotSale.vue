@@ -26,7 +26,7 @@ defineProps({
             <p class="text-sm text-gray-400 dark:text-gray-500 shrink-0 ml-4">{{ products.length }} products</p>
         </div>
 
-        <div v-if="products.length" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+        <div v-if="products.length" class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">
             <ProductCard v-for="product in products" :key="product.id" :product="product" />
         </div>
         <div v-else class="text-center py-20">

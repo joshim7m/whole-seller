@@ -1,6 +1,7 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
+import { useWishlist } from '@/composables/useWishlist';
 
 const props = defineProps({
     product: {
@@ -15,6 +16,13 @@ const props = defineProps({
 
 const page = usePage();
 const isGuest = computed(() => !page.props.auth?.user);
+
+const wishlist = useWishlist();
+onMounted(() => wishlist.load());
+const isWished = computed(() => wishlist.has(props.product.id));
+function toggleWishlist() {
+    wishlist.toggle(props.product.id);
+}
 
 const productUrl = computed(() =>
     route('product.show', props.product.slug || props.product.id),
@@ -173,16 +181,18 @@ const accentFor = (i) => accents[i % accents.length];
                 class="absolute left-2 top-2 z-10 rounded-full bg-gradient-to-r from-[#D9531E] to-rose-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm"
                 >-{{ discountPct }}%</span
             >
-            <span
-                v-if="outOfStock"
-                class="absolute left-2 top-2 z-10 rounded-full bg-gray-900/80 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm"
-                >OUT OF STOCK</span
-            >
 
-            <div
-                v-if="outOfStock"
-                class="absolute inset-0 bg-white/50 backdrop-blur-[1px] dark:bg-gray-900/50"
-            ></div>
+            <button
+                type="button"
+                @click.prevent.stop="toggleWishlist"
+                :aria-label="isWished ? 'Remove from wishlist' : 'Add to wishlist'"
+                :class="isWished ? 'text-red-500 bg-red-50 dark:bg-red-500/10' : 'text-gray-400 dark:text-gray-500 bg-white/80 dark:bg-gray-800/80 hover:text-red-500'"
+                class="absolute top-2 right-2 z-10 w-8 h-8 rounded-full flex items-center justify-center transition shadow-sm"
+            >
+                <svg class="w-4 h-4" :fill="isWished ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/>
+                </svg>
+            </button>
 
             <div
                 class="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
@@ -257,24 +267,6 @@ const accentFor = (i) => accents[i % accents.length];
                             >৳{{ originalPrice.toLocaleString() }}</span
                         >
                     </div>
-                    <p class="mt-1.5 hidden md:block">
-                        <span
-                            :class="
-                                outOfStock
-                                    ? 'border-red-200 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400'
-                                    : 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400'
-                            "
-                            class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold"
-                        >
-                            <span
-                                class="h-1.5 w-1.5 rounded-full"
-                                :class="
-                                    outOfStock ? 'bg-red-500' : 'bg-emerald-500'
-                                "
-                            ></span>
-                            {{ outOfStock ? 'Out of Stock' : 'In Stock' }}
-                        </span>
-                    </p>
                 </div>
                 <div v-else class="min-w-0">
                     <Link
@@ -282,24 +274,6 @@ const accentFor = (i) => accents[i % accents.length];
                         class="text-[11px] font-medium text-blue-600 hover:underline dark:text-blue-400 sm:text-xs"
                         >প্রাইস দেখতে লগইন করুন</Link
                     >
-                    <p class="mt-1.5 hidden md:block">
-                        <span
-                            :class="
-                                outOfStock
-                                    ? 'border-red-200 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400'
-                                    : 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400'
-                            "
-                            class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold"
-                        >
-                            <span
-                                class="h-1.5 w-1.5 rounded-full"
-                                :class="
-                                    outOfStock ? 'bg-red-500' : 'bg-emerald-500'
-                                "
-                            ></span>
-                            {{ outOfStock ? 'Out of Stock' : 'In Stock' }}
-                        </span>
-                    </p>
                 </div>
 
                 <span

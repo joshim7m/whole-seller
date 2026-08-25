@@ -13,7 +13,7 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Category::with('children', 'parent');
+        $query = Category::with('children', 'parent')->withCount('products');
 
         if ($search = $request->get('search')) {
             $query->where('name', 'like', "%{$search}%");

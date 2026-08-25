@@ -45,7 +45,7 @@ function changeSort(event) {
             </select>
         </div>
 
-        <div v-if="products.data && products.data.length" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+        <div v-if="products.data && products.data.length" class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">
             <ProductCard v-for="product in products.data" :key="product.id" :product="product" />
         </div>
         <div v-else class="text-center py-20">

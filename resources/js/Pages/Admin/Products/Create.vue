@@ -206,14 +206,11 @@ function openFilePicker() {
                         <div>
                             <label for="unit_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit Price (BDT) <span class="text-red-500">*</span></label>
                             <input id="unit_price" v-model="form.unit_price" type="number" min="0" class="w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" required />
-                            <p v-if="form.errors.unit_price" class="mt-1 text-sm text-red-600">{{ form.errors.unit_price }}</p>
-                            <p v-if="form.unit_price" class="mt-1 text-xs text-gray-500">≈ {{ formatPrice(form.unit_price) }}</p>
-                        </div>
+                            <p v-if="form.errors.unit_price" class="mt-1 text-sm text-red-600">{{ form.errors.unit_price }}</p>                   </div>
                         <div>
                             <label for="sale_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sale Price (BDT) <span class="text-red-500">*</span></label>
                             <input id="sale_price" v-model="form.sale_price" type="number" min="0" class="w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" required />
                             <p v-if="form.errors.sale_price" class="mt-1 text-sm text-red-600">{{ form.errors.sale_price }}</p>
-                            <p v-if="form.sale_price" class="mt-1 text-xs text-gray-500">≈ {{ formatPrice(form.sale_price) }}</p>
                         </div>
                     </div>
 

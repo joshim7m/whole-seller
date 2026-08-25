@@ -79,6 +79,7 @@ function statusBadge(status) {
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400">
+                                <th class="text-left px-4 py-3 font-medium w-16">SN</th>
                                 <th class="text-left px-4 py-3 font-medium">Product</th>
                                 <th class="text-left px-4 py-3 font-medium">Category</th>
                                 <th class="text-right px-4 py-3 font-medium">Price</th>
@@ -89,7 +90,8 @@ function statusBadge(status) {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                            <tr v-for="product in products.data" :key="product.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                            <tr v-for="(product, index) in products.data" :key="product.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                                <td class="px-4 py-3 text-gray-900 dark:text-white font-medium">{{ products.from + index }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3">
                                         <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0">
@@ -134,7 +136,7 @@ function statusBadge(status) {
                                 </td>
                             </tr>
                             <tr v-if="products.data.length === 0">
-                                <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No products found.</td>
+                                <td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No products found.</td>
                             </tr>
                         </tbody>
                     </table>

@@ -98,23 +98,13 @@ class CatalogSeeder extends Seeder
             $name = $data['name'];
             $slug = $this->cleanSlug($name);
 
-            $originalPrice = $data['originalPrice'] ?? $data['unitPrice'] ?? $data['unitePrice'] ?? 0;
-            $salePrice = $data['unitPrice'] ?? $data['unitePrice'] ?? $originalPrice;
-
-            if ($originalPrice <= 0) {
-                $originalPrice = $salePrice;
-            }
-            if ($salePrice > $originalPrice) {
-                [$originalPrice, $salePrice] = [$salePrice, $originalPrice];
-            }
-
             $product = Product::create([
                 'category_id' => $categoryId,
                 'title' => $name,
                 'slug' => $slug,
                 'description' => $data['description'] ?? '',
-                'unit_price' => $originalPrice,
-                'sale_price' => $salePrice,
+                'unit_price' => $data['unitPrice'] ?? '',
+                'sale_price' => $data['salePrice'] ?? '',
                 'status' => 'active',
                 'featured' => false,
                 'quantity' => 10,

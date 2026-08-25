@@ -87,7 +87,7 @@ function changeSort(event) {
                     </select>
                 </div>
 
-                <div v-if="products.data && products.data.length" class="grid grid-cols-1 gap-4 md:gap-5">
+                <div v-if="products.data && products.data.length" class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
                     <ProductCard v-for="product in products.data" :key="product.id" :product="product" />
                 </div>
                 <div v-else class="text-center py-20">
@@ -98,9 +98,20 @@ function changeSort(event) {
                     <Link :href="window.location.pathname" class="mt-2 inline-block text-sm text-blue-600 hover:underline">Clear filters</Link>
                 </div>
 
-                <div v-if="products.links && products.links.length > 3" class="mt-8 flex justify-center gap-1">
-                    <Link v-for="(link, i) in products.links" :key="i" :href="link.url || '#'" v-html="link.label" class="px-3 py-1.5 text-sm rounded-lg transition"
-                        :class="link.active ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'"
+                <div v-if="products.links && products.links.length > 3" class="mt-10 flex items-center justify-center gap-1">
+                    <Link
+                        v-for="(link, i) in products.links"
+                        :key="i"
+                        :href="link.url || '#'"
+                        class="relative inline-flex items-center justify-center min-w-[40px] h-10 text-sm font-medium rounded-xl transition-all duration-200"
+                        :class="[
+                            link.active
+                                ? 'bg-[#D9531E] text-white shadow-lg shadow-orange-200/70 dark:shadow-orange-900/30 scale-105'
+                                : link.url
+                                    ? 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-[#D9531E] hover:text-[#D9531E] dark:hover:border-orange-500 dark:hover:text-orange-400 hover:shadow-md'
+                                    : 'bg-gray-50 dark:bg-gray-900 text-gray-300 dark:text-gray-600 cursor-not-allowed border border-gray-100 dark:border-gray-800'
+                        ]"
+                        v-html="link.label"
                         :preserve-scroll="true"
                     />
                 </div>

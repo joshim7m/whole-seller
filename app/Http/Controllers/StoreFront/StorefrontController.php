@@ -12,7 +12,6 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\UserDetail;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -23,21 +22,38 @@ class StorefrontController extends Controller
 {
     public function index()
     {
-        $categories = Category::with('children')->orderBy('id')->get();
+        $allCategories = Category::where('is_active', true)
+            ->with('children')
+            ->orderBy('id')
+            ->get();
 
-        $categoryIds = $categories->pluck('id');
+        $parentCategories = $allCategories->whereNull('parent_id');
+        $childCategories = $allCategories->whereNotNull('parent_id');
 
-        $counts = DB::table('category_product')
-            ->join('products', 'products.id', '=', 'category_product.product_id')
-            ->whereIn('category_product.category_id', $categoryIds)
-            ->where('products.status', 'active')
-            ->select('category_product.category_id')
+        $flatCategories = $parentCategories->concat($childCategories)->values();
+
+        $displayCategories = $flatCategories->take(9);
+        $hasMore = $flatCategories->count() > 9;
+
+        $categoryIds = $displayCategories->pluck('id');
+
+        if ($hasMore) {
+            $remainingIds = $flatCategories->slice(9)->pluck('id');
+            $categoryIds = $categoryIds->merge($remainingIds);
+        }
+
+        $allCategoryIds = $categoryIds->values();
+
+        $counts = Product::where('status', 'active')
+            ->whereNotNull('category_id')
+            ->whereIn('category_id', $allCategoryIds)
+            ->select('category_id')
             ->selectRaw('count(*) as total')
-            ->groupBy('category_product.category_id')
-            ->pluck('total', 'category_product.category_id')
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id')
             ->map(fn ($value) => (int) $value);
 
-        $categories->each(function (Category $category) use ($counts) {
+        $displayCategories->each(function (Category $category) use ($counts) {
             $total = (int) $counts->get($category->id, 0);
 
             if ($category->children->isNotEmpty()) {
@@ -46,6 +62,30 @@ class StorefrontController extends Controller
 
             $category->products_count = $total;
         });
+
+        if ($hasMore) {
+            $remainingCategories = $allCategories->whereIn('id', $remainingIds);
+            $othersCount = $remainingCategories->sum(function (Category $category) use ($counts) {
+                $total = (int) $counts->get($category->id, 0);
+
+                if ($category->children->isNotEmpty()) {
+                    $total += $category->children->sum(fn (Category $child) => (int) $counts->get($child->id, 0));
+                }
+
+                return $total;
+            });
+
+            $othersCategory = new \stdClass;
+            $othersCategory->id = 'others';
+            $othersCategory->name = 'Others';
+            $othersCategory->slug = null;
+            $othersCategory->image_url = null;
+            $othersCategory->products_count = $othersCount;
+
+            $categories = $displayCategories->push($othersCategory);
+        } else {
+            $categories = $displayCategories;
+        }
 
         $featured = Product::where('status', 'active')->where('featured', true)
             ->with('category', 'images')->latest()->take(20)->get();

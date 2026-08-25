@@ -61,30 +61,34 @@ function confirmDelete() {
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400">
-                                <th class="text-left px-4 py-3 font-medium">ID</th>
-                                <th class="text-left px-4 py-3 font-medium">Image</th>
-                                <th class="text-left px-4 py-3 font-medium">Name</th>
+                                <th class="text-left px-4 py-3 font-medium w-16">SN</th>
+                                <th class="text-left px-4 py-3 font-medium">Category</th>
+                                <th class="text-left px-4 py-3 font-medium">Slug</th>
                                 <th class="text-left px-4 py-3 font-medium">Parent</th>
                                 <th class="text-left px-4 py-3 font-medium">Active</th>
-                                <th class="text-left px-4 py-3 font-medium">Slug</th>
                                 <th class="text-right px-4 py-3 font-medium">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                            <tr v-for="cat in categories.data" :key="cat.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
-                                <td class="px-4 py-3 text-gray-900 dark:text-white font-medium">{{ cat.id }}</td>
+                            <tr v-for="(cat, index) in categories.data" :key="cat.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                                <td class="px-4 py-3 text-gray-900 dark:text-white font-medium">{{ categories.from + index }}</td>
                                 <td class="px-4 py-3">
-                                    <img v-if="cat.image_url" :src="cat.image_url" :alt="cat.name" class="w-10 h-10 rounded-lg object-cover" />
-                                    <div v-else class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 text-xs">N/A</div>
+                                    <div class="flex items-center gap-3">
+                                        <img v-if="cat.image_url" :src="cat.image_url" :alt="cat.name" class="w-10 h-10 rounded-lg object-cover" />
+                                        <div v-else class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 text-xs">N/A</div>
+                                        <div>
+                                            <Link :href="route('admin.categories.edit', cat.id)" class="text-gray-900 dark:text-white font-medium hover:text-blue-600 dark:hover:text-blue-400 transition">{{ cat.name }}</Link>
+                                            <p class="text-xs text-gray-400 dark:text-gray-500">{{ cat.products_count }} {{ cat.products_count === 1 ? 'product' : 'products' }}</p>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td class="px-4 py-3"><Link :href="route('admin.categories.edit', cat.id)" class="text-gray-900 dark:text-white font-medium hover:text-blue-600 dark:hover:text-blue-400 transition">{{ cat.name }}</Link></td>
+                                <td class="px-4 py-3 text-gray-500 dark:text-gray-400 font-mono text-xs">{{ cat.slug }}</td>
                                 <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ cat.parent?.name || '—' }}</td>
                                 <td class="px-4 py-3">
                                     <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium" :class="cat.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'">
                                         {{ cat.is_active ? 'Yes' : 'No' }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-gray-500 dark:text-gray-400 font-mono text-xs">{{ cat.slug }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex items-center justify-end gap-1.5">
                                         <Link :href="route('admin.categories.edit', cat.id)" class="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 hover:text-white bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-600 dark:hover:bg-blue-600 transition" title="Edit">
@@ -97,7 +101,7 @@ function confirmDelete() {
                                 </td>
                             </tr>
                             <tr v-if="categories.data.length === 0">
-                                <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No categories found.</td>
+                                <td colspan="6" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No categories found.</td>
                             </tr>
                         </tbody>
                     </table>
