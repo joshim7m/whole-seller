@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -13,7 +14,7 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Category::with('children', 'parent')->withCount('products');
+        $query = Category::with('children', 'parent');
 
         if ($search = $request->get('search')) {
             $query->where('name', 'like', "%{$search}%");
@@ -46,7 +47,26 @@ class CategoryController extends Controller
         $categories = $query->paginate(15)->withQueryString();
         $parentCategories = Category::whereNull('parent_id')->orderBy('name')->get();
 
+        $categories->getCollection()->transform(function (Category $category) {
+            $category->products_count = $this->countProducts($category);
+
+            return $category;
+        });
+
         return Inertia::render('Admin/Categories/Index', compact('categories', 'parentCategories'));
+    }
+
+    private function countProducts(Category $category): int
+    {
+        $ownCount = Product::where('status', 'active')
+            ->where(function ($q) use ($category) {
+                $q->where('category_id', $category->id)
+                    ->orWhereHas('categories', fn ($cq) => $cq->where('categories.id', $category->id));
+            })->count();
+
+        $childCount = $category->children->sum(fn (Category $child) => $this->countProducts($child));
+
+        return $ownCount + $childCount;
     }
 
     public function create()

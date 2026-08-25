@@ -50,7 +50,7 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside));
 
 <template>
     <header
-        class="relative sticky top-0 z-40 bg-gradient-to-br from-orange-50 via-rose-50 to-indigo-100 dark:bg-gray-900 dark:bg-none"
+        class="relative sticky top-0 z-40 bg-gradient-to-br from-orange-50 via-rose-50 to-indigo-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-950"
     >
         <div
             class="absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-[#D9531E] via-amber-400 to-emerald-400 opacity-50"

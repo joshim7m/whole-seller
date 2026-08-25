@@ -45,12 +45,20 @@ class StorefrontController extends Controller
         $allCategoryIds = $categoryIds->values();
 
         $counts = Product::where('status', 'active')
-            ->whereNotNull('category_id')
-            ->whereIn('category_id', $allCategoryIds)
-            ->select('category_id')
-            ->selectRaw('count(*) as total')
-            ->groupBy('category_id')
-            ->pluck('total', 'category_id')
+            ->where(function ($q) use ($allCategoryIds) {
+                $q->whereIn('category_id', $allCategoryIds)
+                    ->orWhereHas('categories', fn ($cq) => $cq->whereIn('categories.id', $allCategoryIds));
+            })
+            ->get()
+            ->flatMap(function (Product $p) use ($allCategoryIds) {
+                $ids = collect();
+                if ($p->category_id && $allCategoryIds->contains($p->category_id)) {
+                    $ids->push($p->category_id);
+                }
+
+                return $ids->merge($p->categories->pluck('id'));
+            })
+            ->countBy()
             ->map(fn ($value) => (int) $value);
 
         $displayCategories->each(function (Category $category) use ($counts) {
@@ -116,9 +124,29 @@ class StorefrontController extends Controller
 
     public function categories()
     {
-        $categories = Category::withCount(['products' => function ($q) {
-            $q->where('status', 'active');
-        }])->get();
+        $allCategories = Category::where('is_active', true)
+            ->with('children')
+            ->get();
+
+        $categories = $allCategories->map(function (Category $category) {
+            $ownCount = Product::where('status', 'active')
+                ->where(function ($q) use ($category) {
+                    $q->where('category_id', $category->id)
+                        ->orWhereHas('categories', fn ($cq) => $cq->where('categories.id', $category->id));
+                })->count();
+
+            $childCount = $category->children->sum(function (Category $child) {
+                return Product::where('status', 'active')
+                    ->where(function ($q) use ($child) {
+                        $q->where('category_id', $child->id)
+                            ->orWhereHas('categories', fn ($cq) => $cq->where('categories.id', $child->id));
+                    })->count();
+            });
+
+            $category->products_count = $ownCount + $childCount;
+
+            return $category;
+        });
 
         return Inertia::render('StoreFront/Categories/Index', compact('categories'));
     }
@@ -129,7 +157,10 @@ class StorefrontController extends Controller
 
         $categoryIds = $category->children->pluck('id')->push($category->id)->values();
 
-        $query = Product::whereIn('category_id', $categoryIds)
+        $query = Product::where(function ($q) use ($categoryIds) {
+            $q->whereIn('category_id', $categoryIds)
+                ->orWhereHas('categories', fn ($cq) => $cq->whereIn('categories.id', $categoryIds));
+        })
             ->where('status', 'active')
             ->with('images', 'variants');
 
@@ -188,9 +219,14 @@ class StorefrontController extends Controller
 
     public function product(Product $product)
     {
-        $product->load('category', 'images', 'variants.image');
+        $product->load('categories', 'images', 'variants.image');
 
-        $related = Product::where('category_id', $product->category_id)
+        $categoryIds = $product->categories->pluck('id');
+
+        $related = Product::where(function ($q) use ($categoryIds) {
+            $q->whereIn('category_id', $categoryIds)
+                ->orWhereHas('categories', fn ($cq) => $cq->whereIn('categories.id', $categoryIds));
+        })
             ->where('id', '!=', $product->id)
             ->where('status', 'active')
             ->with('images', 'variants')
@@ -435,7 +471,10 @@ class StorefrontController extends Controller
 
         if ($request->filled('categories')) {
             $cats = (array) $request->categories;
-            $query->whereIn('category_id', $cats);
+            $query->where(function ($q) use ($cats) {
+                $q->whereIn('category_id', $cats)
+                    ->orWhereHas('categories', fn ($cq) => $cq->whereIn('categories.id', $cats));
+            });
         }
 
         if ($request->filled('sizes')) {
@@ -469,11 +508,32 @@ class StorefrontController extends Controller
 
     private function getFilterOptions(Request $request)
     {
-        $categories = Category::whereHas('products', function ($q) {
-            $q->where('status', 'active');
-        })->withCount(['products' => function ($q) {
-            $q->where('status', 'active');
-        }])->get();
+        $allCategories = Category::where('is_active', true)
+            ->with('children')
+            ->get();
+
+        $categories = $allCategories
+            ->map(function (Category $category) {
+                $ownCount = Product::where('status', 'active')
+                    ->where(function ($q) use ($category) {
+                        $q->where('category_id', $category->id)
+                            ->orWhereHas('categories', fn ($cq) => $cq->where('categories.id', $category->id));
+                    })->count();
+
+                $childCount = $category->children->sum(function (Category $child) {
+                    return Product::where('status', 'active')
+                        ->where(function ($q) use ($child) {
+                            $q->where('category_id', $child->id)
+                                ->orWhereHas('categories', fn ($cq) => $cq->where('categories.id', $child->id));
+                        })->count();
+                });
+
+                $category->products_count = $ownCount + $childCount;
+
+                return $category;
+            })
+            ->filter(fn (Category $category) => $category->products_count > 0)
+            ->values();
 
         $prices = Product::where('status', 'active')
             ->selectRaw('MIN(sale_price) as min_price, MAX(sale_price) as max_price')

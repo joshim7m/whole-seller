@@ -33,7 +33,7 @@ const searchOpen = ref(false)
     <div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
         <Teleport to="body">
             <div v-show="mobileOpen" class="fixed inset-0 z-50 bg-black/40" @click="mobileOpen = false"></div>
-            <div v-show="mobileOpen" class="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-gradient-to-b from-orange-50 via-rose-50 to-indigo-100 dark:bg-gray-900 shadow-2xl overflow-y-auto">
+            <div v-show="mobileOpen" class="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-gradient-to-b from-orange-50 via-rose-50 to-indigo-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 shadow-2xl overflow-y-auto">
                 <div class="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#D9531E] via-amber-400 to-emerald-400"></div>
                 <div class="relative flex items-center justify-between px-4 h-16">
                     <div class="flex items-center gap-2.5 min-w-0">
