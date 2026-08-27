@@ -182,7 +182,7 @@ class StorefrontController extends Controller
         $query = $this->applyFilters($request, $query);
         $query = $this->applySort($request, $query);
 
-        $products = $query->paginate(12)->withQueryString();
+        $products = $query->paginate(20)->withQueryString();
 
         $filters = $this->getFilterOptions($request);
 

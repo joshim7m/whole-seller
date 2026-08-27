@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import FrontEndMaster from '@/Layouts/Frontend/FrontEndMaster.vue'
 import FilterSidebar from '@/Components/StoreFront/FilterSidebar.vue'
@@ -18,6 +18,19 @@ function changeSort(event) {
     params.set('sort', event.target.value)
     router.get(window.location.pathname + '?' + params.toString(), {}, { preserveScroll: true, preserveState: true })
 }
+
+const paginationLinks = computed(() => {
+    if (!props.products.links) return []
+    return props.products.links.map(link => {
+        if (link.label === '&laquo; Previous') {
+            return { ...link, label: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>' }
+        }
+        if (link.label === 'Next &raquo;') {
+            return { ...link, label: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>' }
+        }
+        return link
+    })
+})
 </script>
 
 <template>
@@ -98,9 +111,9 @@ function changeSort(event) {
                     <Link :href="window.location.pathname" class="mt-2 inline-block text-sm text-blue-600 hover:underline">Clear filters</Link>
                 </div>
 
-                <div v-if="products.links && products.links.length > 3" class="mt-10 flex items-center justify-center gap-1">
+                <div v-if="products.links && products.links.length > 3" class="mt-10 flex items-center justify-center gap-1 flex-wrap">
                     <Link
-                        v-for="(link, i) in products.links"
+                        v-for="(link, i) in paginationLinks"
                         :key="i"
                         :href="link.url || '#'"
                         class="relative inline-flex items-center justify-center min-w-[40px] h-10 text-sm font-medium rounded-xl transition-all duration-200"

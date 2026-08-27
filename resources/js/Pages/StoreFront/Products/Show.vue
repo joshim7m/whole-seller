@@ -120,6 +120,38 @@ function toggleWishlist() {
 const hasOptions = computed(
     () => uniqueSizes.value.length + uniqueColors.value.length > 0,
 );
+
+const colorHex = (color) => {
+    const map = {
+        red: '#ef4444',
+        black: '#1a1a1a',
+        white: '#ffffff',
+        blue: '#3b82f6',
+        green: '#22c55e',
+        pink: '#ec4899',
+        purple: '#a855f7',
+        grey: '#6b7280',
+        gray: '#6b7280',
+        navy: '#1e3a5f',
+        brown: '#8b4513',
+        beige: '#f5f5dc',
+        champagne: '#f7e7ce',
+        'dusty pink': '#d8a7b0',
+        'army green': '#4b5320',
+        olive: '#808000',
+        'hot pink': '#ff69b4',
+        bronze: '#cd7f32',
+        'multi colour': 'linear-gradient(90deg, #ef4444, #3b82f6, #22c55e, #eab308)',
+        multicolor: 'linear-gradient(90deg, #ef4444, #3b82f6, #22c55e, #eab308)',
+        multicolour: 'linear-gradient(90deg, #ef4444, #3b82f6, #22c55e, #eab308)',
+        multi: 'linear-gradient(90deg, #ef4444, #3b82f6, #22c55e, #eab308)',
+        'baby pink': '#f4c2c2',
+        'mint blue': '#a2d8d8',
+    };
+    return map[color.toLowerCase()] || '#d1d5db';
+};
+
+const showFullDescription = ref(false);
 </script>
 
 <template>
@@ -256,20 +288,15 @@ const hasOptions = computed(
                 </h1>
 
                 <div v-if="!isGuest" class="flex items-center gap-3">
+                    
                     <span
                         class="text-xl font-bold text-blue-600 dark:text-blue-400"
-                        >৳{{ salePrice.toLocaleString() }}</span
-                    >
-                    <span
-                        class="text-base text-gray-400 line-through dark:text-gray-500"
                         >৳{{ originalPrice.toLocaleString() }}</span
                     >
                     <span
-                        v-if="originalPrice > salePrice"
-                        class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                        >Save ৳{{
-                            (originalPrice - salePrice).toLocaleString()
-                        }}</span
+                        class="text-base text-gray-400 dark:text-gray-500 line-through"
+                        >৳{{ salePrice.toLocaleString() }}</span
+                    >
                     >
                 </div>
                 <div v-else class="font-bengali">
@@ -311,7 +338,7 @@ const hasOptions = computed(
                     <div class="flex items-center gap-1.5">
                         <span
                             v-if="!hasOptions || selectedVariant"
-                            class="inline-flex items-center gap-1"
+                            class="inline-flex items-center gap-1 text-base"
                             :class="
                                 (selectedVariant
                                     ? availableQty
@@ -347,11 +374,7 @@ const hasOptions = computed(
                     </div>
                 </div>
 
-                <div
-                    v-if="product.description"
-                    class="rich-text-content text-sm text-gray-600 dark:text-gray-400"
-                    v-html="renderContent(product.description)"
-                ></div>
+                
 
                 <div v-if="uniqueSizes.length">
                     <p
@@ -377,24 +400,29 @@ const hasOptions = computed(
                 </div>
 
                 <div v-if="uniqueColors.length">
-                    <p
-                        class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                        Color
-                    </p>
+                    <p class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">Color</p>
                     <div class="flex flex-wrap gap-2">
                         <button
                             v-for="color in uniqueColors"
                             :key="color"
                             @click="selectColor(color)"
-                            class="rounded-lg border px-4 py-1.5 text-sm transition"
-                            :class="
-                                selectedColor === color
-                                    ? 'border-blue-600 bg-blue-600 text-white'
-                                    : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-blue-400'
-                            "
+                            class="group flex items-center gap-2 rounded-lg border px-3 py-2 transition-all duration-200"
+                            :class="selectedColor === color
+                                ? 'border-blue-600 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/30'
+                                : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-blue-400'"
                         >
-                            {{ color }}
+                            <span
+                                class="h-5 w-5 rounded-full border-2 shadow-sm transition-transform duration-200 group-hover:scale-110"
+                                :class="selectedColor === color ? 'border-blue-600 dark:border-blue-400' : 'border-gray-300 dark:border-gray-500'"
+                                :style="{
+                                    backgroundColor: colorHex(color),
+                                    backgroundImage: colorHex(color).startsWith('linear') ? colorHex(color) : 'none',
+                                }"
+                            ></span>
+                            <span
+                                class="text-sm font-medium capitalize"
+                                :class="selectedColor === color ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'"
+                            >{{ color }}</span>
                         </button>
                     </div>
                 </div>
@@ -432,7 +460,39 @@ const hasOptions = computed(
                         </svg>
                     </button>
                 </div>
+                <div v-if="product.description" class="mt-2">
+                    <div
+                        class="relative overflow-hidden transition-all duration-300"
+                        :class="showFullDescription ? '' : 'max-h-24'"
+                    >
+                        <div
+                            class="rich-text-content text-sm leading-relaxed text-gray-600 dark:text-gray-400"
+                            v-html="renderContent(product.description)"
+                        ></div>
+                        <div
+                            v-if="!showFullDescription"
+                            class="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white dark:from-gray-900 to-transparent"
+                        ></div>
+                    </div>
+                    <button
+                        @click="showFullDescription = !showFullDescription"
+                        class="mt-2 flex items-center justify-center gap-1 w-full text-sm font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                        <span>{{ showFullDescription ? 'Show less' : 'Show more' }}</span>
+                        <svg
+                            class="h-4 w-4 transition-transform duration-200"
+                            :class="showFullDescription ? 'rotate-180' : ''"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                </div>
             </div>
+
+            
         </div>
 
         <div v-if="product.specification" class="mt-10">

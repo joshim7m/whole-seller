@@ -206,12 +206,6 @@ const accentFor = (i) => accents[i % accents.length];
                 >
                     {{ product.title }}
                 </h3>
-                <p
-                    v-if="product.sku"
-                    class="mt-1 truncate text-[11px] font-medium text-gray-400 dark:text-gray-500"
-                >
-                    SKU: {{ product.sku }}
-                </p>
             </div>
 
             <div
