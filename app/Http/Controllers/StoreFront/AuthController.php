@@ -4,6 +4,7 @@ namespace App\Http\Controllers\StoreFront;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Product;
 use App\Models\User;
 use App\Models\UserDetail;
 use Illuminate\Http\Request;
@@ -74,7 +75,13 @@ class AuthController extends Controller
 
     public function showInactive()
     {
-        return Inertia::render('StoreFront/Auth/AccountInactive');
+        $products = Product::where('status', 'active')
+            ->with(['images', 'variants'])
+            ->latest()
+            ->take(8)
+            ->get();
+
+        return Inertia::render('StoreFront/Auth/AccountInactive', compact('products'));
     }
 
     public function logout(Request $request)

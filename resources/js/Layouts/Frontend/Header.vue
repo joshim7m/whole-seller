@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import SearchBox from '@/Components/StoreFront/SearchBox.vue';
+import NotificationDropdown from '@/Components/StoreFront/NotificationDropdown.vue';
 import { useCart } from '@/composables/useCart';
 import { useWishlist } from '@/composables/useWishlist';
 
@@ -117,6 +118,7 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside));
                     </Link>
 
                     <template v-if="auth?.user">
+                        <NotificationDropdown />
                         <div class="hidden h-5 w-px bg-gray-200 dark:bg-gray-700 sm:block"></div>
                         <div ref="userMenuEl" class="relative">
                             <button @click="toggleUserMenu"

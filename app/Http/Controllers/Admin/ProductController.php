@@ -34,6 +34,24 @@ class ProductController extends Controller
             });
         }
 
+        if ($request->get('stock') === 'in_stock') {
+            $query->where(function ($q) {
+                $q->where('quantity', '>', 0)
+                    ->orWhereHas('variants', fn ($vq) => $vq->where('quantity', '>', 0));
+            });
+        } elseif ($request->get('stock') === 'out_of_stock') {
+            $query->where(function ($q) {
+                $q->where('quantity', '<=', 0)
+                    ->orWhereNull('quantity');
+            })->whereDoesntHave('variants', fn ($vq) => $vq->where('quantity', '>', 0));
+        }
+
+        if ($request->get('featured') === '1') {
+            $query->where('featured', true);
+        } elseif ($request->get('featured') === '0') {
+            $query->where('featured', false);
+        }
+
         $sortField = match ($request->sort_by) {
             'price' => 'sale_price',
             'status' => 'status',

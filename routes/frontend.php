@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\StoreFront\AuthController;
 use App\Http\Controllers\StoreFront\CheckoutController;
+use App\Http\Controllers\StoreFront\NotificationController;
 use App\Http\Controllers\StoreFront\StorefrontController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,4 +42,8 @@ Route::middleware(['auth', 'check-status'])->group(function () {
     Route::get('/orders', [CheckoutController::class, 'orders'])->name('orders.index');
     Route::get('/orders/{order}', [CheckoutController::class, 'show'])->name('orders.show');
     Route::get('/orders/{order}/invoice', [CheckoutController::class, 'downloadInvoice'])->name('orders.invoice');
+
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/all', [NotificationController::class, 'page'])->name('notifications.page');
+    Route::post('/notifications/read', [NotificationController::class, 'markAllRead'])->name('notifications.markRead');
 });

@@ -11,6 +11,8 @@ const props = defineProps({
 
 const search = ref('')
 const categoryId = ref('')
+const stockFilter = ref(new URLSearchParams(window.location.search).get('stock') || '')
+const featuredFilter = ref(new URLSearchParams(window.location.search).get('featured') || '')
 const showDeleteDialog = ref(false)
 const deletingId = ref(null)
 const dropdownOpen = ref(false)
@@ -38,18 +40,68 @@ function handleClickOutside(e) {
     }
 }
 
-onMounted(() => document.addEventListener('click', handleClickOutside))
-onUnmounted(() => document.removeEventListener('click', handleClickOutside))
-
 function truncate(text, len = 50) {
     return text?.length > len ? text.substring(0, len) + '...' : text
 }
 
+const stockDropdownOpen = ref(false)
+const stockDropdownRef = ref(null)
+const featuredDropdownOpen = ref(false)
+const featuredDropdownRef = ref(null)
+
+const stockLabel = computed(() => {
+    const map = { '': 'All Stock', 'in_stock': 'In Stock', 'out_of_stock': 'Out of Stock' }
+    return map[stockFilter.value] || 'All Stock'
+})
+
+function selectStock(val) {
+    stockFilter.value = val
+    stockDropdownOpen.value = false
+}
+
+function handleStockOutside(e) {
+    if (stockDropdownRef.value && !stockDropdownRef.value.contains(e.target)) {
+        stockDropdownOpen.value = false
+    }
+}
+
+function handleFeaturedOutside(e) {
+    if (featuredDropdownRef.value && !featuredDropdownRef.value.contains(e.target)) {
+        featuredDropdownOpen.value = false
+    }
+}
+
+const featuredLabel = computed(() => {
+    const map = { '': 'Featured', '1': 'Featured Only', '0': 'Non-Featured' }
+    return map[featuredFilter.value] || 'All Products'
+})
+
+function selectFeatured(val) {
+    featuredFilter.value = val
+    featuredDropdownOpen.value = false
+}
+
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside)
+    document.addEventListener('click', handleStockOutside)
+    document.addEventListener('click', handleFeaturedOutside)
+})
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
+    document.removeEventListener('click', handleStockOutside)
+    document.removeEventListener('click', handleFeaturedOutside)
+})
+
 let debounceTimer
-watch([search, categoryId], () => {
+watch([search, categoryId, stockFilter, featuredFilter], () => {
     clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => {
-        router.get(route('admin.products.index'), { search: search.value, category_id: categoryId.value }, { preserveState: true, replace: true })
+        router.get(route('admin.products.index'), {
+            search: search.value,
+            category_id: categoryId.value,
+            stock: stockFilter.value,
+            featured: featuredFilter.value,
+        }, { preserveState: true, replace: true })
     }, 300)
 })
 
@@ -111,6 +163,32 @@ function statusBadge(status) {
                             </div>
                         </div>
                     </div>
+                    <div ref="stockDropdownRef" class="relative">
+                        <button @click="stockDropdownOpen = !stockDropdownOpen" type="button" class="w-44 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm shadow-sm px-3 py-2 flex items-center justify-between hover:border-gray-400 dark:hover:border-gray-600 transition">
+                            <span class="truncate">{{ stockLabel }}</span>
+                            <svg class="w-4 h-4 text-gray-400 shrink-0 ml-2" :class="{ 'rotate-180': stockDropdownOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div v-show="stockDropdownOpen" class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                            <div class="py-1">
+                                <button @click="selectStock('')" type="button" class="w-full text-left px-3 py-2 text-sm transition" :class="!stockFilter ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'">All Stock</button>
+                                <button @click="selectStock('in_stock')" type="button" class="w-full text-left px-3 py-2 text-sm transition" :class="stockFilter === 'in_stock' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'">In Stock</button>
+                                <button @click="selectStock('out_of_stock')" type="button" class="w-full text-left px-3 py-2 text-sm transition" :class="stockFilter === 'out_of_stock' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'">Out of Stock</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div ref="featuredDropdownRef" class="relative">
+                        <button @click="featuredDropdownOpen = !featuredDropdownOpen" type="button" class="w-44 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm shadow-sm px-3 py-2 flex items-center justify-between hover:border-gray-400 dark:hover:border-gray-600 transition">
+                            <span class="truncate">{{ featuredLabel }}</span>
+                            <svg class="w-4 h-4 text-gray-400 shrink-0 ml-2" :class="{ 'rotate-180': featuredDropdownOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div v-show="featuredDropdownOpen" class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                            <div class="py-1">
+                                <button @click="selectFeatured('')" type="button" class="w-full text-left px-3 py-2 text-sm transition" :class="!featuredFilter ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'">All Products</button>
+                                <button @click="selectFeatured('1')" type="button" class="w-full text-left px-3 py-2 text-sm transition" :class="featuredFilter === '1' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'">Featured Only</button>
+                                <button @click="selectFeatured('0')" type="button" class="w-full text-left px-3 py-2 text-sm transition" :class="featuredFilter === '0' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'">Non-Featured</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto admin-scrollbar">
@@ -139,13 +217,13 @@ function statusBadge(status) {
                                         <div class="min-w-0">
                                             <Link :href="route('admin.products.edit', product.id)" class="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition block truncate">{{ truncate(product.title, 40) }}</Link>
                                             <p class="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">{{ product.sku }}</p>
-                                        </div>
-                                    </div>
+                    </div>
+                </div>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <div class="flex flex-wrap gap-1">
-                                        <span v-if="product.categories?.length" v-for="cat in product.categories" :key="cat.id" class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">{{ cat.name }}</span>
-                                        <span v-else class="text-gray-600 dark:text-gray-400">{{ product.category?.name || '—' }}</span>
+                                    <div class="flex flex-col gap-1">
+                                        <span v-if="product.categories?.length" v-for="cat in product.categories" :key="cat.id" class="inline-flex px-2 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap w-fit">{{ cat.name }}</span>
+                                        <span v-else class="text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ product.category?.name || '—' }}</span>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-right">
