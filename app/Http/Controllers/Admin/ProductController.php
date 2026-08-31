@@ -259,8 +259,7 @@ class ProductController extends Controller
             }
         }
 
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product "'.$product->title.'" updated successfully.');
+        return back()->with('success', 'Product "'.$product->title.'" updated successfully.');
     }
 
     public function destroyImage(Product $product, ProductImage $image)

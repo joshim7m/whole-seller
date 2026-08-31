@@ -116,11 +116,19 @@ function generateVariants() {
 
     const combinations = cartesian(optionGroups)
     form.variants = combinations.map(combo => {
+        let option1 = ''
+        let option2 = ''
+        if (sizes.length > 0) {
+            option1 = combo[0] || ''
+            if (combo[1] !== undefined) option2 = combo[1]
+        } else if (combo[0] !== undefined) {
+            option2 = combo[0]
+        }
         const variant = {
             id: null,
-            option1: combo[0] || '',
-            option2: combo[1] || '',
-            option3: combo[2] || '',
+            option1,
+            option2,
+            option3: '',
             sku: generate5DigitSku(),
             unit_price: form.unit_price || '',
             sale_price: form.sale_price || '',

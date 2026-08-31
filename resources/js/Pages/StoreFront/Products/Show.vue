@@ -83,6 +83,11 @@ const whatsappUrl = computed(() => {
     return `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
 });
 
+const callUrl = computed(() => {
+    const number = (settings.value.whatsapp_number || '').replace(/[^0-9]/g, '');
+    return number ? `tel:${number}` : null;
+});
+
 function prevImage() {
     activeImage.value = activeImage.value > 0 ? activeImage.value - 1 : 0;
 }
@@ -226,6 +231,21 @@ const showFullDescription = ref(false);
                     />
                     <span v-if="!images.length">No Image</span>
                     <button
+                        type="button"
+                        @click="toggleWishlist"
+                        :aria-label="isWished ? 'Remove from wishlist' : 'Add to wishlist'"
+                        class="absolute right-2.5 top-2.5 z-10 flex h-10 w-10 items-center justify-center rounded-full border bg-white/90 shadow-sm backdrop-blur transition-all duration-200 md:hidden"
+                        :class="
+                            isWished
+                                ? 'border-red-200 bg-red-50 text-red-500'
+                                : 'border-gray-300 bg-white/90 text-gray-500 hover:bg-white hover:text-red-500'
+                        "
+                    >
+                        <svg class="h-5 w-5" :fill="isWished ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                        </svg>
+                    </button>
+                    <button
                         v-if="images.length > 1"
                         @click="prevImage"
                         class="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-gray-700 opacity-0 shadow-sm transition hover:bg-white group-hover:opacity-100 dark:bg-gray-900/80 dark:text-gray-300 dark:hover:bg-gray-900"
@@ -293,10 +313,10 @@ const showFullDescription = ref(false);
                         class="text-xl font-bold text-blue-600 dark:text-blue-400"
                         >৳{{ originalPrice.toLocaleString() }}</span
                     >
-                    <span
+                    <!-- <span
                         class="text-base text-gray-400 dark:text-gray-500 line-through"
                         >৳{{ salePrice.toLocaleString() }}</span
-                    >
+                    > -->
                     >
                 </div>
                 <div v-else class="font-bengali">
@@ -427,7 +447,7 @@ const showFullDescription = ref(false);
                     </div>
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <a
                         v-if="whatsappUrl"
                         :href="whatsappUrl"
@@ -444,11 +464,21 @@ const showFullDescription = ref(false);
                     <span v-else class="flex-1 text-sm text-gray-400 dark:text-gray-500">
                         WhatsApp not available
                     </span>
+                    <a
+                        v-if="callUrl"
+                        :href="callUrl"
+                        class="flex flex-1 items-center justify-center gap-2.5 rounded-xl bg-[#D9531E] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c64a17] hover:shadow-md active:scale-[0.98]"
+                    >
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57a1 1 0 01-.25 1.02l-2.2 2.2z"/>
+                        </svg>
+                        Call for Order
+                    </a>
                     <button
                         type="button"
                         @click="toggleWishlist"
                         :aria-label="isWished ? 'Remove from wishlist' : 'Add to wishlist'"
-                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-all duration-200"
+                        class="hidden md:flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-all duration-200"
                         :class="
                             isWished
                                 ? 'border-red-200 bg-red-50 text-red-500 dark:border-red-500/40 dark:bg-red-500/10'
