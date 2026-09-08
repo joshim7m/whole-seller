@@ -32,27 +32,13 @@ class StorefrontController extends Controller
 
         $flatCategories = $parentCategories->concat($childCategories)->values();
 
-        $displayCategories = $flatCategories->take(9);
-        $hasMore = $flatCategories->count() > 9;
-
-        $categoryIds = $displayCategories->pluck('id');
-
-        if ($hasMore) {
-            $remainingIds = $flatCategories->slice(9)->pluck('id');
-            $categoryIds = $categoryIds->merge($remainingIds);
-        }
-
-        $allCategoryIds = $categoryIds->values();
+        $categories = $flatCategories;
 
         $counts = Product::where('status', 'active')
-            ->where(function ($q) use ($allCategoryIds) {
-                $q->whereIn('category_id', $allCategoryIds)
-                    ->orWhereHas('categories', fn ($cq) => $cq->whereIn('categories.id', $allCategoryIds));
-            })
             ->get()
-            ->flatMap(function (Product $p) use ($allCategoryIds) {
+            ->flatMap(function (Product $p) {
                 $ids = collect();
-                if ($p->category_id && $allCategoryIds->contains($p->category_id)) {
+                if ($p->category_id) {
                     $ids->push($p->category_id);
                 }
 
@@ -61,7 +47,7 @@ class StorefrontController extends Controller
             ->countBy()
             ->map(fn ($value) => (int) $value);
 
-        $displayCategories->each(function (Category $category) use ($counts) {
+        $categories->each(function (Category $category) use ($counts) {
             $total = (int) $counts->get($category->id, 0);
 
             if ($category->children->isNotEmpty()) {
@@ -70,30 +56,6 @@ class StorefrontController extends Controller
 
             $category->products_count = $total;
         });
-
-        if ($hasMore) {
-            $remainingCategories = $allCategories->whereIn('id', $remainingIds);
-            $othersCount = $remainingCategories->sum(function (Category $category) use ($counts) {
-                $total = (int) $counts->get($category->id, 0);
-
-                if ($category->children->isNotEmpty()) {
-                    $total += $category->children->sum(fn (Category $child) => (int) $counts->get($child->id, 0));
-                }
-
-                return $total;
-            });
-
-            $othersCategory = new \stdClass;
-            $othersCategory->id = 'others';
-            $othersCategory->name = 'Others';
-            $othersCategory->slug = null;
-            $othersCategory->image_url = null;
-            $othersCategory->products_count = $othersCount;
-
-            $categories = $displayCategories->push($othersCategory);
-        } else {
-            $categories = $displayCategories;
-        }
 
         $featured = Product::where('status', 'active')->where('featured', true)
             ->with('category', 'images')->latest()->take(20)->get();

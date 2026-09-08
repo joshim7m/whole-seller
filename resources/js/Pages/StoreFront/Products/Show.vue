@@ -58,17 +58,9 @@ const availableQty = computed(() => {
 });
 
 const salePrice = computed(() => {
-    if (selectedVariant.value?.sale_price)
-        return Number(selectedVariant.value.sale_price);
-    return Number(props.product.sale_price || props.product.unit_price || 0);
-});
-
-const originalPrice = computed(() => {
     if (selectedVariant.value?.unit_price)
         return Number(selectedVariant.value.unit_price);
-    return Number(
-        props.product.unit_price || props.product.original_price || 0,
-    );
+    return Number(props.product.unit_price || 0);
 });
 
 const whatsappUrl = computed(() => {
@@ -311,12 +303,7 @@ const showFullDescription = ref(false);
                     
                     <span
                         class="text-xl font-bold text-blue-600 dark:text-blue-400"
-                        >৳{{ originalPrice.toLocaleString() }}</span
-                    >
-                    <!-- <span
-                        class="text-base text-gray-400 dark:text-gray-500 line-through"
                         >৳{{ salePrice.toLocaleString() }}</span
-                    > -->
                     >
                 </div>
                 <div v-else class="font-bengali">

@@ -35,7 +35,7 @@ function imageOf(product) {
 }
 
 function priceOf(product) {
-    return Number(product.sale_price || product.unit_price || 0);
+    return Number(product.unit_price || 0);
 }
 
 const exporting = ref(false);

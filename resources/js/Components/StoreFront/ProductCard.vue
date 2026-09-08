@@ -27,10 +27,7 @@ const quickView = useQuickView()
 
 const productUrl = computed(() => route('product.show', props.product.slug || props.product.id))
 
-const salePrice = computed(() => Number(props.product.sale_price || props.product.unit_price || 0))
-const originalPrice = computed(() => Number(props.product.unit_price || props.product.original_price || 0))
-const hasDiscount = computed(() => originalPrice.value > salePrice.value && originalPrice.value > 0)
-const discountPct = computed(() => hasDiscount.value ? Math.round((1 - salePrice.value / originalPrice.value) * 100) : 0)
+const salePrice = computed(() => Number(props.product.unit_price || 0))
 
 const stock = computed(() => Number(props.product.total_stock ?? props.product.quantity ?? 0))
 const outOfStock = computed(() => stock.value <= 0)
@@ -220,7 +217,6 @@ const colorHex = (color) => {
 
             <div class="absolute top-2 left-2 z-10 flex flex-col gap-1">
                 <span v-if="merchantBadge && isGuest" class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded shadow-sm">Merchant</span>
-                <span v-if="!hideBadges && hasDiscount" class="bg-gradient-to-r from-[#D9531E] to-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">-{{ discountPct }}%</span>
             </div>
 
             <button
@@ -288,7 +284,6 @@ const colorHex = (color) => {
                 <div v-if="!isGuest">
                     <div class="flex items-baseline gap-1.5">
                         <span class="text-base font-extrabold text-[#D9531E] dark:text-orange-400 tracking-tight">৳{{ salePrice.toLocaleString() }}</span>
-                        <span v-if="hasDiscount" class="text-[11px] text-red-300 dark:text-red-500 line-through font-medium">৳{{ originalPrice.toLocaleString() }}</span>
                     </div>
                 </div>
                 <div v-else>

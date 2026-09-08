@@ -112,17 +112,7 @@ watch(variantImageIndex, (idx) => {
 
 // ---------- price / stock ----------
 const salePrice = computed(() =>
-    Number(selectedVariant.value?.sale_price ?? product.value?.sale_price ?? product.value?.unit_price ?? 0)
-)
-
-const originalPrice = computed(() =>
-    Number(selectedVariant.value?.unit_price ?? product.value?.unit_price ?? product.value?.original_price ?? 0)
-)
-
-const hasDiscount = computed(() => originalPrice.value > salePrice.value && originalPrice.value > 0)
-
-const discountPct = computed(() =>
-    hasDiscount.value ? Math.round((1 - salePrice.value / originalPrice.value) * 100) : 0
+    Number(selectedVariant.value?.unit_price ?? product.value?.unit_price ?? 0)
 )
 
 const stock = computed(() =>
@@ -315,7 +305,6 @@ onBeforeUnmount(() => clearTimeout(addedTimer))
                                         ></button>
                                     </div>
 
-                                    <span v-if="hasDiscount" class="absolute top-2 left-2 z-10 bg-[#D9531E] text-white text-xs font-bold px-2 py-0.5 rounded">-{{ discountPct }}%</span>
                                     <span v-if="outOfStock" class="absolute top-2 left-2 z-10 bg-gray-900/80 text-white text-xs font-semibold px-2 py-0.5 rounded">OUT OF STOCK</span>
                                 </div>
                             </div>
@@ -333,7 +322,6 @@ onBeforeUnmount(() => clearTimeout(addedTimer))
                                         <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 tracking-wider uppercase">Wholesale Price</span>
                                         <div class="flex items-baseline gap-2 mt-0.5">
                                             <span class="text-xl sm:text-2xl font-extrabold text-[#0B132A] dark:text-white tracking-tight">৳{{ salePrice.toLocaleString() }}</span>
-                                            <span v-if="hasDiscount" class="text-sm text-red-300 dark:text-red-500 line-through font-medium">৳{{ originalPrice.toLocaleString() }}</span>
                                         </div>
                                         <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 mt-1">
                                             {{ outOfStock ? 'Out of Stock' : 'In Stock' }}

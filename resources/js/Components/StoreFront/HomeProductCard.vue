@@ -29,18 +29,7 @@ const productUrl = computed(() =>
 );
 
 const salePrice = computed(() =>
-    Number(props.product.sale_price || props.product.unit_price || 0),
-);
-const originalPrice = computed(() =>
-    Number(props.product.unit_price || props.product.original_price || 0),
-);
-const hasDiscount = computed(
-    () => originalPrice.value > salePrice.value && originalPrice.value > 0,
-);
-const discountPct = computed(() =>
-    hasDiscount.value
-        ? Math.round((1 - salePrice.value / originalPrice.value) * 100)
-        : 0,
+    Number(props.product.unit_price || 0),
 );
 
 const stock = computed(() =>
@@ -176,12 +165,6 @@ const accentFor = (i) => accents[i % accents.length];
                 />
             </svg>
 
-            <span
-                v-if="hasDiscount"
-                class="absolute left-2 top-2 z-10 rounded-full bg-gradient-to-r from-[#D9531E] to-rose-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm"
-                >-{{ discountPct }}%</span
-            >
-
             <button
                 type="button"
                 @click.prevent.stop="toggleWishlist"
@@ -254,11 +237,6 @@ const accentFor = (i) => accents[i % accents.length];
                         <span
                             class="text-sm font-extrabold tracking-tight text-[#D9531E] dark:text-orange-400 md:text-base"
                             >৳{{ salePrice.toLocaleString() }}</span
-                        >
-                        <span
-                            v-if="hasDiscount"
-                            class="text-[11px] font-medium text-red-300 line-through dark:text-red-500"
-                            >৳{{ originalPrice.toLocaleString() }}</span
                         >
                     </div>
                 </div>

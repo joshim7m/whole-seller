@@ -278,16 +278,6 @@ const formatPrice = (price) => '৳' + Number(price).toLocaleString('en-IN');
                                     <span
                                         class="text-sm font-bold text-[#D9531E] dark:text-orange-400"
                                         >৳{{
-                                            formatPrice(product.sale_price)
-                                        }}</span
-                                    >
-                                    <span
-                                        v-if="
-                                            product.unit_price >
-                                            product.sale_price
-                                        "
-                                        class="text-xs text-red-300 line-through dark:text-red-500"
-                                        >৳{{
                                             formatPrice(product.unit_price)
                                         }}</span
                                     >

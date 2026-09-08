@@ -18,7 +18,11 @@ class ProductController extends Controller
         $query = Product::with('category', 'images', 'variants', 'categories');
 
         if ($search = $request->get('search')) {
-            $query->where('title', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhereHas('variants', fn ($vq) => $vq->where('sku', 'like', "%{$search}%"));
+            });
         }
 
         if ($request->filled('category_id')) {

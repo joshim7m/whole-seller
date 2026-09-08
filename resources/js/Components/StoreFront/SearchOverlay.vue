@@ -165,8 +165,7 @@ const formatPrice = (price) => '৳' + Number(price).toLocaleString('en-IN')
                                         <p class="text-sm font-semibold text-gray-900 dark:text-white leading-snug line-clamp-2">{{ product.title }}</p>
                                         <p v-if="product.sku" class="mt-0.5 text-xs font-medium text-gray-400 dark:text-gray-500">SKU: {{ product.sku }}</p>
                                         <div v-if="!isGuest" class="mt-1 flex items-center gap-2">
-                                            <span class="text-sm font-bold text-[#0B132A] dark:text-white">৳{{ formatPrice(product.sale_price) }}</span>
-                                            <span v-if="product.unit_price > product.sale_price" class="text-xs text-red-300 dark:text-red-500 line-through">৳{{ formatPrice(product.unit_price) }}</span>
+                                            <span class="text-sm font-bold text-[#0B132A] dark:text-white">৳{{ formatPrice(product.unit_price) }}</span>
                                         </div>
                                         <Link v-else :href="route('login')" @click="close" class="mt-1 inline-block text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">প্রাইস দেখতে লগইন করুন</Link>
                                     </div>
